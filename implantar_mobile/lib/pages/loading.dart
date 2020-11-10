@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:implantar_mobile/services/user.dart';
 
 class Loading extends StatefulWidget {
   @override
@@ -7,6 +8,20 @@ class Loading extends StatefulWidget {
 }
 
 class _LoadingState extends State<Loading> {
+  User user;
+
+  void login() async {
+    User newUserInstance = User();
+    await newUserInstance.init();
+    user = newUserInstance;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    login();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
