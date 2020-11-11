@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:implantar_mobile/services/config.dart';
 import 'dart:io';
 
@@ -10,19 +9,13 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
 class User {
-  String baseUrl;
-  String username;
-  String password;
+  BuildContext context;
   String nome;
   String token;
   bool isAuthenticated;
   Database db;
-  static const String TABLE_NAME = 'user';
 
-  User() {
-    ImplantarConfig config = ImplantarConfig();
-    baseUrl = config.protocol + config.domain;
-  }
+  User(this.context);
 
   Future<void> init() async {
     /* Pega referência do banco */
@@ -32,13 +25,12 @@ class User {
       Map userMap = await getUser();
       populateWithMap(userMap); // Populate
     } else {
+      /* Novo token */
+      await login();
       /* Limpa db */
       await db.delete(
         'user',
       );
-      /* Novo token */
-      Map userMap = await login();
-      populateWithMap(userMap); // Populate
       /* Salva no banco */
       await db.insert(
         'user',
@@ -54,14 +46,13 @@ class User {
 
   Future<bool> userExistCheck() async {
     try {
-      final List<Map<String, dynamic>> maps = await db.query(TABLE_NAME);
+      final List<Map<String, dynamic>> maps = await db.query(USER_TABLE);
       if (maps.length != 1 || maps[0]['token'] == null) {
         return false;
       } else if (await tokenValidation(maps[0]['token'])) {
         return true;
       }
     } catch (e) {
-      print("Não foi possível verificar se há usuário salvo");
       print(e);
       return false;
     }
@@ -69,40 +60,37 @@ class User {
   }
 
   Future<Map<String, dynamic>> getUser() async {
-    final List<Map<String, dynamic>> maps = await db.query(TABLE_NAME);
+    final List<Map<String, dynamic>> maps = await db.query(USER_TABLE);
     return maps[0];
   }
 
-  Future<Map<String, dynamic>> login() async {
-    final http.Response response = await http.post(
-      baseUrl + 'api-token-auth/',
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(
-          <String, String>{'username': 'artur', 'password': '050483artur'}),
-    );
-    if (response.statusCode == 200) {
-      token = jsonDecode(response.body)['token'];
-      isAuthenticated = true;
-      return {'token': jsonDecode(response.body)['token']};
-    } else {
-      isAuthenticated = false;
-      throw Exception('Falha ao logar');
-    }
+  Future<void> login() async {
+    dynamic result = await Navigator.pushNamed(context, '/login');
+    token = result;
+    return;
   }
 
   Future<bool> tokenValidation(tokenToBeValidated) async {
+    int count = 0; // tentativas de conexão
     /* Testa token acessando a raiz da api */
-    http.Response response = await http.get(
-      baseUrl,
-      headers: {'Authorization': 'token ' + tokenToBeValidated},
-    );
-    if (response.statusCode == 200) {
-      return true;
-    } else {
-      return false;
+    while (count < CONN_TENTATIVAS) {
+      try {
+        http.Response response = await http.get(
+          baseUrl,
+          headers: {'Authorization': 'token ' + tokenToBeValidated},
+        );
+        if (response.statusCode == 200) {
+          return true;
+        } else {
+          return false;
+        }
+      } catch (e) {
+        print(e);
+        count++;
+        sleep(const Duration(seconds: 5));
+      }
     }
+    return false;
   }
 
   Map<String, dynamic> toMap() {
@@ -122,15 +110,11 @@ class User {
       // `path` package is best practice to ensure the path is correctly
       // constructed for each platform.
       join(await getDatabasesPath(), 'implantar.db'),
-      // When the database is first created, create a table to store dogs.
       onCreate: (db, version) {
-        // Run the CREATE TABLE statement on the database.
         return db.execute(
           "CREATE TABLE user(id AUTO_INCREMENT INTEGER PRIMARY KEY, nome TEXT, token TEXT)",
         );
       },
-      // Set the version. This executes the onCreate function and provides a
-      // path to perform database upgrades and downgrades.
       version: 1,
     );
   }

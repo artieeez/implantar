@@ -11,7 +11,7 @@ class _LoadingState extends State<Loading> {
   User user;
 
   void login() async {
-    User newUserInstance = User();
+    User newUserInstance = User(context);
     await newUserInstance.init();
     user = newUserInstance;
   }
@@ -19,7 +19,7 @@ class _LoadingState extends State<Loading> {
   @override
   void initState() {
     super.initState();
-    login();
+    /* login(); */
   }
 
   @override
@@ -42,7 +42,7 @@ class _LoadingState extends State<Loading> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   SpinKitFadingCircle(
-                    color: const Color(0xFFacc99b),
+                    color: const Color(0x9Fe9d6bd),
                     size: 30.0,
                   ),
                   SizedBox(width: 10.0),
@@ -51,7 +51,7 @@ class _LoadingState extends State<Loading> {
                     style: TextStyle(
                       letterSpacing: 2.0,
                       fontSize: 16.0,
-                      color: const Color(0xFFacc99b),
+                      color: const Color(0x9Fe9d6bd),
                     ),
                   ),
                 ],
