@@ -23,10 +23,12 @@ class User {
     /* Verifica se possuí token válido */
     if (await userExistCheck()) {
       Map userMap = await getUser();
-      populateWithMap(userMap); // Populate
+      await populateWithMap(userMap);
+      return; // Populate
     } else {
       /* Novo token */
-      await login();
+      final result = await Navigator.pushNamed(context, '/login');
+      token = result;
       /* Limpa db */
       await db.delete(
         'user',
@@ -37,6 +39,7 @@ class User {
         this.toMap(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
+      return;
     }
   }
 
@@ -62,12 +65,6 @@ class User {
   Future<Map<String, dynamic>> getUser() async {
     final List<Map<String, dynamic>> maps = await db.query(USER_TABLE);
     return maps[0];
-  }
-
-  Future<void> login() async {
-    dynamic result = await Navigator.pushNamed(context, '/login');
-    token = result;
-    return;
   }
 
   Future<bool> tokenValidation(tokenToBeValidated) async {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:implantar_mobile/services/user.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class Loading extends StatefulWidget {
   @override
@@ -14,12 +15,14 @@ class _LoadingState extends State<Loading> {
     User newUserInstance = User(context);
     await newUserInstance.init();
     user = newUserInstance;
+    Navigator.pushReplacementNamed(context, '/list', arguments: {'user': user});
   }
 
   @override
   void initState() {
     super.initState();
-    /* login(); */
+    Permission.storage.request();
+    login();
   }
 
   @override

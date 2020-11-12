@@ -5,8 +5,6 @@ import 'package:implantar_mobile/services/config.dart';
 import 'dart:io';
 import 'package:implantar_mobile/utilities/constantes.dart';
 
-import 'package:permission_handler/permission_handler.dart';
-
 ///   Este módulo tem como função obter as credenciais de login e autenticar,
 /// obtendo o token de auth.
 
@@ -28,7 +26,6 @@ class _LoginState extends State<Login> {
   @override
   void initState() {
     super.initState();
-    Permission.storage.request();
   }
 
   @override

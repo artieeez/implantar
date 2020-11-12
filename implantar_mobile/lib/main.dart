@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:implantar_mobile/pages/loading.dart';
 import 'package:implantar_mobile/pages/login.dart';
+import 'package:implantar_mobile/pages/rede.dart';
+import 'package:implantar_mobile/utilities/constantes.dart';
 
 void main() => runApp(MaterialApp(
       title: 'Implantar',
       theme: ThemeData(
-        brightness: Brightness.dark,
-        primaryColor: Colors.white,
-        accentColor: const Color(0xFFacc99b),
+        brightness: Brightness.light,
+        primaryColor: kPrimaryColor,
+        accentColor: kAccentColor,
       ),
-      initialRoute: '/login',
+      initialRoute: '/list',
       routes: {
-        '/': (context) => Loading(),
-        '/login': (context) => Login(),
+        '/list': (context) => RedeList(),
       },
     ));
