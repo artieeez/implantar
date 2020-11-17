@@ -1,38 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:implantar_mobile/services/user.dart';
 import 'package:implantar_mobile/utilities/constantes.dart';
-import 'package:implantar_mobile/api/redesObjects.dart';
-import 'package:implantar_mobile/pages/pontos.dart';
+import 'package:implantar_mobile/api/pontosObjects.dart';
 import 'package:implantar_mobile/pages/drawer.dart';
 
-class RedeList extends StatefulWidget {
+class PontoList extends StatefulWidget {
   final User user;
-  RedeList({Key key, @required this.user}) : super(key: key);
+  final String redePk;
+  PontoList({Key key, @required this.user, @required this.redePk})
+      : super(key: key);
 
   @override
-  _RedeListState createState() => _RedeListState(user);
+  _PontoListState createState() => _PontoListState(user, redePk);
 }
 
-class _RedeListState extends State<RedeList> {
+class _PontoListState extends State<PontoList> {
   User user;
-  _RedeListState(this.user);
+  String redePk;
+  _PontoListState(this.user, this.redePk);
 
   Map data = {};
-  RedesObjects redes;
+  PontosObjects pontos;
   List<dynamic> results = [];
 
-  void _getList() async {
-    redes = RedesObjects(user);
-    await redes.all();
+  void getList() async {
+    pontos = PontosObjects(user, redePk);
+    await pontos.all();
     setState(() {
-      results = redes.results;
+      results = pontos.results;
     });
   }
 
   @override
   void initState() {
     super.initState();
-    _getList();
+    getList();
   }
 
   @override
@@ -55,26 +57,22 @@ class _RedeListState extends State<RedeList> {
         padding: EdgeInsets.all(16.0),
         itemCount: results?.length ?? 0,
         itemBuilder: /*1*/ (context, i) {
-          print(i);
           if (i.isOdd) return Divider(); /*2*/
 
           final index = i ~/ 2; /*3*/
           if (index >= results.length) {
             /*4*/
           }
-          return _buildRow(context, results[index]);
+          return _buildRow(results[index]);
         });
   }
 
-  Widget _buildRow(BuildContext context, Map<String, dynamic> rede) {
+  Widget _buildRow(Map<String, dynamic> rede) {
     return ListTile(
       title: Text(
         rede['nome'],
       ),
-      onTap: () => Navigator.of(context).push(MaterialPageRoute(
-        builder: (context) =>
-            PontoList(user: user, redePk: rede['id'].toString()),
-      )),
+      onTap: () => {},
       leading: CircleAvatar(
         backgroundColor: Colors.deepOrange,
       ),

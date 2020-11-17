@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:implantar_mobile/services/config.dart';
+import 'package:implantar_mobile/services/config.dart' as co;
 import 'dart:io';
 
 /* Data Storage */
@@ -49,7 +49,7 @@ class User {
 
   Future<bool> userExistCheck() async {
     try {
-      final List<Map<String, dynamic>> maps = await db.query(USER_TABLE);
+      final List<Map<String, dynamic>> maps = await db.query(co.USER_TABLE);
       if (maps.length != 1 || maps[0]['token'] == null) {
         return false;
       } else if (await tokenValidation(maps[0]['token'])) {
@@ -63,17 +63,17 @@ class User {
   }
 
   Future<Map<String, dynamic>> getUser() async {
-    final List<Map<String, dynamic>> maps = await db.query(USER_TABLE);
+    final List<Map<String, dynamic>> maps = await db.query(co.USER_TABLE);
     return maps[0];
   }
 
   Future<bool> tokenValidation(tokenToBeValidated) async {
     int count = 0; // tentativas de conexão
     /* Testa token acessando a raiz da api */
-    while (count < CONN_TENTATIVAS) {
+    while (count < co.CONN_LIMIT) {
       try {
         http.Response response = await http.get(
-          baseUrl,
+          co.API['base'],
           headers: {'Authorization': 'token ' + tokenToBeValidated},
         );
         if (response.statusCode == 200) {
