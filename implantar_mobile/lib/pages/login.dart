@@ -44,6 +44,7 @@ class _LoginState extends State<Login> {
     _password = passwordController.text;
     bool tata = await login(_username, _password);
     if (tata) {
+      /* Retorna token para a classe user */
       Navigator.pop(context, _token);
     } else {
       await showAlertDialog(context);

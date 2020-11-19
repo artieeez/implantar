@@ -12,20 +12,25 @@ class User {
   BuildContext context;
   String nome;
   String token;
-  bool isAuthenticated;
+  bool isAuthenticated = false;
+  bool isOnline = false;
   Database db;
 
   User(this.context);
 
   Future<void> init() async {
+    isOnline = await isOnlineCheck();
     /* Pega referência do banco */
     db = await getDatabase();
     /* Verifica se possuí token válido */
     if (await userExistCheck()) {
       Map userMap = await getUser();
       await populateWithMap(userMap);
-      return; // Populate
-    } else {
+    }
+    if (isOnline) {
+      isAuthenticated = await tokenValidation(token);
+    }
+    if (isOnline && !isAuthenticated) {
       /* Novo token */
       final result = await Navigator.pushNamed(context, '/login');
       token = result;
@@ -41,10 +46,11 @@ class User {
       );
       return;
     }
+    return;
   }
 
   populateWithMap(map) {
-    this.token = map['token'];
+    token = map['token'];
   }
 
   Future<bool> userExistCheck() async {
@@ -52,14 +58,13 @@ class User {
       final List<Map<String, dynamic>> maps = await db.query(co.USER_TABLE);
       if (maps.length != 1 || maps[0]['token'] == null) {
         return false;
-      } else if (await tokenValidation(maps[0]['token'])) {
+      } else {
         return true;
       }
     } catch (e) {
       print(e);
       return false;
     }
-    return false;
   }
 
   Future<Map<String, dynamic>> getUser() async {
@@ -73,7 +78,7 @@ class User {
     while (count < co.CONN_LIMIT) {
       try {
         http.Response response = await http.get(
-          co.API['base'],
+          co.API['base'] + 'api/',
           headers: {'Authorization': 'token ' + tokenToBeValidated},
         );
         if (response.statusCode == 200) {
@@ -114,5 +119,21 @@ class User {
       },
       version: 1,
     );
+  }
+
+  Future<bool> isOnlineCheck() async {
+    try {
+      http.Response response = await http.get(
+        co.API['base'] + 'api/',
+      );
+      if (response.statusCode >= 400 && response.statusCode <= 500) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      print(e);
+      return false;
+    }
   }
 }

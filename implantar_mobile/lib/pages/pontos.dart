@@ -1,33 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:implantar_mobile/services/user.dart';
 import 'package:implantar_mobile/utilities/constantes.dart';
-import 'package:implantar_mobile/api/pontosObjects.dart';
 import 'package:implantar_mobile/pages/drawer.dart';
+import 'package:implantar_mobile/api/managers.dart';
+import 'package:implantar_mobile/api/models.dart';
 
 class PontoList extends StatefulWidget {
   final User user;
-  final String redePk;
-  PontoList({Key key, @required this.user, @required this.redePk})
+  final Rede rede;
+  PontoList({Key key, @required this.user, @required this.rede})
       : super(key: key);
 
   @override
-  _PontoListState createState() => _PontoListState(user, redePk);
+  _PontoListState createState() => _PontoListState(user, rede);
 }
 
 class _PontoListState extends State<PontoList> {
   User user;
-  String redePk;
-  _PontoListState(this.user, this.redePk);
+  Rede rede;
+  _PontoListState(this.user, this.rede);
 
   Map data = {};
   PontosObjects pontos;
-  List<dynamic> results = [];
+  List<ApiObject> results = [];
 
   void getList() async {
-    pontos = PontosObjects(user, redePk);
-    await pontos.all();
+    rede.initPontos(user);
+    List<ApiObject> tempListawait = await rede.pontos.all();
     setState(() {
-      results = pontos.results;
+      results = tempListawait;
     });
   }
 
@@ -44,7 +45,7 @@ class _PontoListState extends State<PontoList> {
       appBar: AppBar(
         iconTheme: IconThemeData(color: kAccentColor),
         title: Text(
-          'Redes',
+          rede.nome,
           style: kFont1,
         ),
       ),
@@ -67,10 +68,10 @@ class _PontoListState extends State<PontoList> {
         });
   }
 
-  Widget _buildRow(Map<String, dynamic> rede) {
+  Widget _buildRow(ApiObject ponto) {
     return ListTile(
       title: Text(
-        rede['nome'],
+        ponto.nome,
       ),
       onTap: () => {},
       leading: CircleAvatar(
