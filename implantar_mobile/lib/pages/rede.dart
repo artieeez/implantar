@@ -74,9 +74,11 @@ class _RedeListState extends State<RedeList> {
       title: Text(
         rede.nome,
       ),
-      onTap: () => Navigator.of(context).push(MaterialPageRoute(
-        builder: (context) => PontoList(user: user, rede: rede),
-      )),
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => PontoList(user: user, rede: rede),
+        ),
+      ),
       leading: CircleAvatar(
         backgroundImage: NetworkImage(rede.photo),
       ),

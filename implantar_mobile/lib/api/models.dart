@@ -3,7 +3,7 @@ import 'package:implantar_mobile/services/user.dart';
 
 class ApiObject {
   String url;
-  String id;
+  int id;
   String nome;
   String photo;
   String t_created;
@@ -17,7 +17,6 @@ class Rede extends ApiObject {
 
   void initPontos(User _user) {
     pontos = PontosObjects(_user, id);
-    print(pontos.user.token);
   }
 
   Rede(user) {
@@ -26,7 +25,7 @@ class Rede extends ApiObject {
 
   Rede.fromJson(Map<String, dynamic> json) {
     url = json['url'];
-    id = json['id'].toString();
+    id = json['id'];
     nome = json['nome'];
     photo = json['photo'];
     t_created = json['t_created'];
@@ -50,7 +49,7 @@ class Ponto extends ApiObject {
 
   Ponto.fromJson(Map<String, dynamic> json) {
     url = json['url'];
-    id = json['id'].toString();
+    id = json['id'];
     nome = json['nome'];
     t_created = json['t_created'];
     t_modified = json['t_modified'];
@@ -63,4 +62,31 @@ class Ponto extends ApiObject {
         't_created': t_created,
         't_modified': t_modified,
       };
+}
+
+class Visita {
+  int id;
+  Ponto ponto;
+  String data;
+  String t_created;
+  List<ChecklistItem> itens;
+
+  Visita.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+  }
+}
+
+class ChecklistItem {
+  int id;
+  int item;
+  String text;
+  dynamic photo;
+  String comment;
+  bool isOk;
+  bool isReady;
+
+  ChecklistItem.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    text = json['text'];
+  }
 }

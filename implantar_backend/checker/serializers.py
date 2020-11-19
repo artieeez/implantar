@@ -17,16 +17,21 @@ class VisitaSerializer(serializers.HyperlinkedModelSerializer):
 
 class PontoSerializer(serializers.HyperlinkedModelSerializer):
     visitas = serializers.HyperlinkedRelatedField(many=True, view_name='visitas-list', read_only=True)
+    nome_rede = serializers.SerializerMethodField('get_nome_rede')
+
+    def get_nome_rede(self, ponto):
+        nome_rede = ponto.rede_set.all()[0].nome
+        return nome_rede
 
     class Meta:
         model = Ponto
-        fields = ['url', 'id', 'nome', 'visitas', 't_created', 't_modified']
+        fields = ['url', 'id', 'nome', 'nome_rede', 'visitas', 't_created', 't_modified']
 
 
 class RedeSerializer(serializers.HyperlinkedModelSerializer):
     """ pontos = serializers.HyperlinkedRelatedField(many=True, view_name='pontos-list', read_only=True) """
-    pontos = PontoSerializer(many=True)
-    contatos = PessoaSerializer(many=True)
+    pontos = PontoSerializer(many=True, read_only=True)
+    contatos = PessoaSerializer(many=True, read_only=True)
 
     class Meta:
         model = Rede

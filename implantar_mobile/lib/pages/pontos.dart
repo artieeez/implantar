@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:implantar_mobile/services/user.dart';
 import 'package:implantar_mobile/utilities/constantes.dart';
 import 'package:implantar_mobile/pages/drawer.dart';
+import 'package:implantar_mobile/pages/checklist.dart';
 import 'package:implantar_mobile/api/managers.dart';
 import 'package:implantar_mobile/api/models.dart';
 
@@ -73,7 +74,11 @@ class _PontoListState extends State<PontoList> {
       title: Text(
         ponto.nome,
       ),
-      onTap: () => {},
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => Checklist(user: user, rede: rede, ponto: ponto),
+        ),
+      ),
       leading: CircleAvatar(
         backgroundColor: Colors.deepOrange,
       ),
