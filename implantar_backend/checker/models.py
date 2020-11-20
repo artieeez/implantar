@@ -10,6 +10,10 @@ class Pessoa(models.Model):
     celular = models.CharField(max_length=32, blank=True)
     email = models.EmailField(max_length=64, blank=True)
 
+    """ Cadastro """
+    t_created = models.DateField(auto_now_add=True)
+    t_modified = models.DateField(auto_now=True)
+
 
 class Rede(models.Model):
     nome = models.CharField(max_length=64)
@@ -39,9 +43,44 @@ class Ponto(models.Model):
     t_created = models.DateField(auto_now_add=True)
     t_modified = models.DateField(auto_now=True)
 
+    """ def save(self, *args, **kwargs):
+        print(**kwargs)
+        if not self.pk:
+            print()
+            # This code only happens if the objects is
+            # not in the database yet. Otherwise it would
+            # have pk
+        super(MyModel, self).save(*args, **kwargs) """
+
 
 class Visita(models.Model):
     data = models.DateField()
+    itens = models.ManyToManyField(
+        'checker.ItemBase',
+        through='checker.Item',
+        through_fields=('visita', 'itemBase'),
+        blank=True,
+    )
+    """ Cadastro """
+    t_created = models.DateField(auto_now_add=True)
+    t_modified = models.DateField(auto_now=True)
+
+
+class Item(models.Model):
+    class Meta:
+        ordering = ["itemBase__id"]
+    
+    visita = models.ForeignKey('checker.Visita', on_delete=models.PROTECT)
+    itemBase = models.ForeignKey('checker.ItemBase', on_delete=models.PROTECT)
+    comment = models.CharField(max_length=255, blank=True)
+    photo = models.ImageField(upload_to='checklist_data/images/', blank=True)
+
+
+
+class ItemBase(models.Model):
+    text = models.CharField(max_length=255)
+    active = models.BooleanField(default=True)
+
     """ Cadastro """
     t_created = models.DateField(auto_now_add=True)
     t_modified = models.DateField(auto_now=True)

@@ -6,10 +6,12 @@ from checker import views
 router = DefaultRouter()
 router.register(r'redes', views.RedeViewSet)
 router.register(r'pontos', views.PontoViewSet)
+router.register(r'checklist/item_base', views.ItemBaseViewSet)
 
 
 # The API URLs are now determined automatically by the router.
 urlpatterns = [
     path('', include(router.urls)),
-    path('redes/<int:pk>/pontos/', views.pontosList.as_view()),
+    path('redes/<int:pk>/pontos/', views.RedeViewSet.as_view({'get': 'pontos'})),
+    path('checklist/item_base/active', views.ItemBaseViewSet.as_view({'get': 'active'})),
 ]

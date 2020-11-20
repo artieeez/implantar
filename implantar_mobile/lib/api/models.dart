@@ -16,7 +16,7 @@ class Rede extends ApiObject {
   ApiManagers pontos;
 
   void initPontos(User _user) {
-    pontos = PontosObjects(_user, id);
+    pontos = PontosObjects(_user, id.toString());
   }
 
   Rede(user) {

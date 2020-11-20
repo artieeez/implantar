@@ -1,5 +1,7 @@
-from checker.models import Pessoa, Rede, Ponto, Visita
-from checker.serializers import PessoaSerializer, RedeSerializer, PontoSerializer, VisitaSerializer
+from checker.models import Pessoa, Rede, Ponto, Visita, ItemBase
+from checker.serializers import PessoaSerializer, RedeSerializer
+from checker.serializers import PontoSerializer, VisitaSerializer
+from checker.serializers import ItemBaseSerializer
 from rest_framework import generics, renderers, viewsets
 from django.contrib.auth.models import User
 from rest_framework import permissions
@@ -13,6 +15,58 @@ from rest_framework import status
 # Auth
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+
+
+
+
+
+class RedeViewSet(viewsets.ModelViewSet):
+    """
+    This viewset automatically provides `list`, `create`, `retrieve`,
+    `update` and `destroy` actions.
+    """
+    queryset = Rede.objects.all()
+    serializer_class = RedeSerializer
+
+    @action(detail=True, methods=['get'])
+    def pontos(self, request, pk, format=None):
+        if request.method == 'GET':
+            self.serializer_class = PontoSerializer
+            queryset = Rede.objects.get(id=pk).pontos.all()
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+
+
+class PontoViewSet(viewsets.ModelViewSet):
+    """
+    This viewset automatically provides `list`, `create`, `retrieve`,
+    `update` and `destroy` actions.
+    """
+    queryset = Ponto.objects.all()
+    serializer_class = PontoSerializer
+
+
+class ItemBaseViewSet(viewsets.ModelViewSet):
+    queryset = ItemBase.objects.all()
+    serializer_class = ItemBaseSerializer
+
+    @action(detail=False, methods=['get'])
+    def active(self, request):
+        self.queryset = ItemBase.objects.filter(active=True)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+
 
 
 class MyPaginationMixin(object):
@@ -50,25 +104,12 @@ class MyPaginationMixin(object):
         return self.paginator.get_paginated_response(data)
 
 
-class RedeViewSet(viewsets.ModelViewSet):
-    """
-    This viewset automatically provides `list`, `create`, `retrieve`,
-    `update` and `destroy` actions.
-    """
-    queryset = Rede.objects.all()
-    serializer_class = RedeSerializer
-
-
-class PontoViewSet(viewsets.ModelViewSet):
-    """
-    This viewset automatically provides `list`, `create`, `retrieve`,
-    `update` and `destroy` actions.
-    """
-    queryset = Ponto.objects.all()
-    serializer_class = PontoSerializer
-
-
 class pontosList(APIView, MyPaginationMixin):
+    """ 
+        EXEMPLO
+
+        Exemplo de classe com APIView implementando paginação.
+    """
     authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
     pagination_class = PageNumberPagination
