@@ -1,8 +1,9 @@
-from checker.models import Pessoa, Rede, Ponto, Visita, ItemBase
+from checker.models import Pessoa, Rede, Ponto, Visita, Item, ItemBase
 from checker.serializers import PessoaSerializer, RedeSerializer
 from checker.serializers import PontoSerializer, VisitaSerializer
 from checker.serializers import ItemBaseSerializer, AvaliadorSerializer
 from checker.serializers import AvaliadorCreateSerializer, AvaliadorPasswordSerializer, AvaliadorUsernameSerializer
+from checker.serializers import ItemSerializer, AvaliadorUsernameSerializer
 from rest_framework import generics, renderers, viewsets
 from django.contrib.auth.models import User
 from rest_framework import permissions
@@ -83,19 +84,15 @@ class AvaliadorViewSet(viewsets.ModelViewSet):
         if self.request.method == 'DELETE':
             permission_classes = [IsAdminUser]
         elif self.request.method == 'POST':
-            permission_classes = [AllowAny]
+            permission_classes = [IsAuthenticated]
         else:
-            permission_classes = [AllowAny]
+            permission_classes = [IsAuthenticated]
             # TODO
             """ return [IsStaffOrTargetUser()] """
         return [permission() for permission in permission_classes]
 
 
 class RedeViewSet(viewsets.ModelViewSet):
-    """
-    This viewset automatically provides `list`, `create`, `retrieve`,
-    `update` and `destroy` actions.
-    """
     queryset = Rede.objects.all()
     serializer_class = RedeSerializer
 
@@ -113,13 +110,53 @@ class RedeViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
 
 
+class VisitaViewSet(viewsets.ModelViewSet):
+    queryset = Visita.objects.all()
+    serializer_class = VisitaSerializer
+
+    @action(detail=True, methods=['get'])
+    def itens(self, request, pk, format=None):
+        if request.method == 'GET':
+            self.serializer_class = ItemSerializer
+            queryset = Visita.objects.get(id=pk).itens.all()
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+
+    def create(self, request):
+        if request.method == 'POST':
+            serializer = VisitaSerializer(data=request.data,
+                context={'request': request})
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class PontoViewSet(viewsets.ModelViewSet):
-    """
-    This viewset automatically provides `list`, `create`, `retrieve`,
-    `update` and `destroy` actions.
-    """
     queryset = Ponto.objects.all()
     serializer_class = PontoSerializer
+
+    @action(detail=True, methods=['get'])
+    def visitas(self, request, pk, format=None):
+        if request.method == 'GET':
+            self.serializer_class = VisitaSerializer
+            queryset = Ponto.objects.get(id=pk).visitas.all()
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+
+
+class ItemViewSet(viewsets.ModelViewSet):
+    queryset = Item.objects.all()
+    serializer_class = ItemSerializer
 
 
 class ItemBaseViewSet(viewsets.ModelViewSet):
@@ -128,7 +165,7 @@ class ItemBaseViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def active(self, request):
-        self.queryset = ItemBase.objects.filter(active=True)
+        queryset = ItemBase.objects.filter(active=True)
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -136,8 +173,6 @@ class ItemBaseViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-
-
 
 
 class MyPaginationMixin(object):

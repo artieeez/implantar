@@ -40,6 +40,9 @@ class Rede(models.Model):
     t_created = models.DateField(auto_now_add=True)
     t_modified = models.DateField(auto_now=True)
 
+    def __str__(self):
+        return f'{self.nome}'
+
 
 class Ponto(models.Model):
     nome = models.CharField(max_length=64)
@@ -60,6 +63,9 @@ class Ponto(models.Model):
             # not in the database yet. Otherwise it would
             # have pk
         super(MyModel, self).save(*args, **kwargs) """
+
+    def __str__(self):
+        return f'{self.nome}'
 
 
 class Visita(models.Model):
@@ -96,7 +102,7 @@ class Item(models.Model):
     
     conformidade = models.CharField(max_length=3,
         choices=CONFORMIDADE_CHOICHES, default='NO')
-    visita = models.ForeignKey('checker.Visita', on_delete=models.PROTECT)
+    visita = models.ForeignKey('checker.Visita', on_delete=models.CASCADE)
     itemBase = models.ForeignKey('checker.ItemBase', on_delete=models.PROTECT)
     comment = models.CharField(max_length=255, blank=True)
     photo = models.ImageField(upload_to='checklist_data/images/', blank=True)
@@ -107,6 +113,8 @@ class ItemBase(models.Model):
     id_arb = models.IntegerField(null=True)
     text = models.CharField(max_length=255)
     active = models.BooleanField(default=True)
+    categoria = models.ForeignKey('checker.Categoria',
+        on_delete=models.PROTECT, null=True)
 
     """ Cadastro """
     t_created = models.DateField(auto_now_add=True)

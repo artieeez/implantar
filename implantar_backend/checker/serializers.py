@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from checker.models import Pessoa, Rede, Ponto, Visita, ItemBase, Profile
+from checker.models import Pessoa, Rede, Ponto, Visita, Item, ItemBase, Profile
 from django.contrib.auth.models import User, Group
 from rest_framework.reverse import reverse
 
@@ -64,22 +64,82 @@ class PessoaSerializer(serializers.HyperlinkedModelSerializer):
         fields = ['url', 'id', 'nome', 'telefone', 'celular', 'email', 't_created', 't_modified']
 
 
+class ItemBaseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ItemBase
+        fields = '__all__'
+
+    def create(self, validated_data):
+        return ItemBase.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.nome = validated_data.get('text', instance.text)
+        instance.nome = validated_data.get('active', instance.active)
+        instance.save()
+        return instance
+
+
+class ItemSerializer(serializers.ModelSerializer):
+    visita_id = serializers.IntegerField(write_only=True)
+    item_base_id = serializers.IntegerField(write_only=True)
+    itemBase = ItemBaseSerializer()
+
+    class Meta:
+        model = Item
+        exclude = ['visita']
+
+    def create(self, validated_data):
+        visita = Visita.objects.get(pk=visita_id)
+        item_base = ItemBase.objects.get(pk=item_base_id)
+        i = Item.objects.create(conformidade=validated_data['conformidade'],
+            visita=visita, itemBase=item_base,
+            comment=validated_data['comment'], photo=[validated_data['photo']])
+        return i
+
+    def update(self, instance, validated_data):
+        instance.conformidade = validated_data.get('conformidade',
+            instance.conformidade)
+        instance.comment = validated_data.get('comment',
+            instance.comment)
+        instance.photo = validated_data.get('photo',
+            instance.photo)
+        instance.save()
+        return instance
+
+
 class VisitaSerializer(serializers.HyperlinkedModelSerializer):
     ponto_id = serializers.IntegerField(write_only=True)
+    itens = ItemSerializer(source='item_set', many=True, required=False)
+    avaliador = AvaliadorSerializer(read_only=True)
 
     class Meta:
         model = Visita
-        fields = ['url', 'id', 'data', 'inicio', 'termino', 'avaliador',
-            'plantao', 't_created', 't_modified']
+        fields = ['url', 'id', 'ponto_id', 'data', 'inicio', 'termino', 
+            'avaliador', 'plantao', 'itens', 't_created', 't_modified']
+        extra_kwargs = {
+            'avaliador': {'read_only': True},
+        }
 
     def create(self, validated_data):
-        v = Visita.objects.create(data=validated_data['data'])
+        avaliador = self.context['request'].user
+        v = Visita.objects.create(data=validated_data['data'],
+            inicio=validated_data['inicio'], termino=validated_data['termino'],
+            plantao=validated_data['plantao'], avaliador=avaliador)
         Ponto.objects.get(id=validated_data['ponto_id']).visitas.add(v)
+        """ Popula visita com itens """
+        itens_pool = ItemBase.objects.filter(active=True)
+        for item in itens_pool:
+            Item.objects.create(itemBase=item, visita=v)
         return v
+
+    def update(self, instance, validated_data):
+        itens = validated_data.pop('itens')
+        for row in itens:
+            item = Item.objects.get(pk=row['id'])
+            serializer = ItemSerializer(item, row, partial=True)
 
 
 class PontoSerializer(serializers.HyperlinkedModelSerializer):
-    visitas = serializers.HyperlinkedRelatedField(many=True, view_name='visitas-list', read_only=True)
     rede_nome = serializers.SerializerMethodField('get_rede_nome', read_only=True)
     rede_id = serializers.IntegerField(write_only=True)
 
@@ -94,7 +154,7 @@ class PontoSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Ponto
-        fields = ['url', 'id', 'nome', 'rede_id', 'rede_nome', 'visitas', 't_created', 't_modified']
+        fields = ['url', 'id', 'nome', 'rede_id', 'rede_nome', 't_created', 't_modified']
 
 
 class RedeSerializer(serializers.HyperlinkedModelSerializer):
@@ -115,16 +175,6 @@ class RedeSerializer(serializers.HyperlinkedModelSerializer):
         return instance
 
 
-class ItemBaseSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ItemBase
-        fields = '__all__'
 
-    def create(self, validated_data):
-        return Rede.objects.create(**validated_data)
 
-    def update(self, instance, validated_data):
-        instance.nome = validated_data.get('text', instance.text)
-        instance.nome = validated_data.get('active', instance.active)
-        instance.save()
-        return instance
+
