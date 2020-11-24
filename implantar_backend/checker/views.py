@@ -1,7 +1,8 @@
 from checker.models import Pessoa, Rede, Ponto, Visita, ItemBase
 from checker.serializers import PessoaSerializer, RedeSerializer
 from checker.serializers import PontoSerializer, VisitaSerializer
-from checker.serializers import ItemBaseSerializer
+from checker.serializers import ItemBaseSerializer, AvaliadorSerializer
+from checker.serializers import AvaliadorCreateSerializer, AvaliadorPasswordSerializer, AvaliadorUsernameSerializer
 from rest_framework import generics, renderers, viewsets
 from django.contrib.auth.models import User
 from rest_framework import permissions
@@ -11,13 +12,83 @@ from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination, LimitOffsetPagination
 from rest_framework import status
+from rest_framework import permissions
 
 # Auth
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 
 
+class AvaliadorViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.exclude(profile__isnull=True)
+    serializer_class = AvaliadorSerializer
 
+    @action(detail=True, methods=['put'])
+    def password(self, request, pk, format=None):
+        if request.method == 'PUT':
+            user = self.get_object()
+            serializer = AvaliadorPasswordSerializer(user, data=request.data)
+            if serializer.is_valid():
+                # Check old password
+                if not user.check_password(serializer.validated_data.get("old_password")):
+                    return Response({"old_password": ["Senha incorreta"]}, status=status.HTTP_400_BAD_REQUEST)
+                # set_password also hashes the password that the user will get
+                user.set_password(serializer.validated_data.get("new_password"))
+                user.save()
+                response = {
+                    'status': 'success',
+                    'code': status.HTTP_200_OK,
+                    'message': 'Senha alterada.',
+                    'data': []
+                }
+                return Response(response)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['put'])
+    def username(self, request, pk, format=None):
+        if request.method == 'PUT':
+            user = self.get_object()
+            serializer = AvaliadorUsernameSerializer(user, data=request.data)
+            if serializer.is_valid():
+                # Check old password
+                if not user.check_password(serializer.validated_data.get("password")):
+                    return Response({"password": ["Senha incorreta"]}, status=status.HTTP_400_BAD_REQUEST)
+                # set_password also hashes the password that the user will get
+                user.username = serializer.validated_data.get("username")
+                user.save()
+                response = {
+                    'status': 'success',
+                    'code': status.HTTP_200_OK,
+                    'message': 'Username alterado.',
+                    'data': []
+                }
+                return Response(response)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get_serializer_class(self):
+        serializer_class = self.serializer_class
+
+        if self.request.method == 'POST':
+            serializer_class = AvaliadorCreateSerializer
+        if self.request.method == 'PUT':
+            serializer_class = AvaliadorSerializer
+        if self.action == 'password':
+            serializer_class = AvaliadorPasswordSerializer
+        if self.action == 'username':
+            serializer_class = AvaliadorUsernameSerializer
+
+        return serializer_class
+
+    def get_permissions(self):
+        if self.request.method == 'DELETE':
+            permission_classes = [IsAdminUser]
+        elif self.request.method == 'POST':
+            permission_classes = [AllowAny]
+        else:
+            permission_classes = [AllowAny]
+            # TODO
+            """ return [IsStaffOrTargetUser()] """
+        return [permission() for permission in permission_classes]
 
 
 class RedeViewSet(viewsets.ModelViewSet):

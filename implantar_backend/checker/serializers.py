@@ -1,7 +1,61 @@
 from rest_framework import serializers
-from checker.models import Pessoa, Rede, Ponto, Visita, ItemBase
-from django.contrib.auth.models import User
+from checker.models import Pessoa, Rede, Ponto, Visita, ItemBase, Profile
+from django.contrib.auth.models import User, Group
 from rest_framework.reverse import reverse
+
+GRUPO_AVALIADORES = 'avaliador'
+
+class ProfileSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Profile
+        fields = ['display_name']
+
+
+class AvaliadorCreateSerializer(serializers.ModelSerializer):
+    profile = ProfileSerializer()
+
+    class Meta:
+        model = User
+        fields = ['username', 'password', 'email', 'profile']
+
+    def create(self, validated_data):
+        user = User(
+            email=validated_data['email'],
+            username=validated_data['username']
+        )
+        user.set_password(validated_data['password'])
+        user.save()
+        group = Group.objects.get(name=GRUPO_AVALIADORES)
+        group.user_set.add(user)
+        profile_data = validated_data.pop('profile')
+        Profile.objects.create(user=user, **profile_data)
+        return user
+
+
+class AvaliadorPasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(write_only=True)
+
+    model = User
+
+
+class AvaliadorUsernameSerializer(serializers.Serializer):
+    password = serializers.CharField(write_only=True)
+    username = serializers.CharField(write_only=True)
+
+    model = User
+
+
+class AvaliadorSerializer(serializers.ModelSerializer):
+    profile = ProfileSerializer()
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'profile']
+        extra_kwargs = {
+            'username': {'read_only': True},
+        }
 
 
 class PessoaSerializer(serializers.HyperlinkedModelSerializer):
@@ -15,7 +69,8 @@ class VisitaSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Visita
-        fields = ['url', 'id', 'data', 't_created', 't_modified']
+        fields = ['url', 'id', 'data', 'inicio', 'termino', 'avaliador',
+            'plantao', 't_created', 't_modified']
 
     def create(self, validated_data):
         v = Visita.objects.create(data=validated_data['data'])

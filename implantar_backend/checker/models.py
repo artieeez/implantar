@@ -1,7 +1,16 @@
+from django.conf import settings
 from django.db import models
 from datetime import date
 
 # Create your models here.
+class Profile(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True)
+    display_name = models.CharField(max_length=255)
+
+
 class Pessoa(models.Model):
     nome = models.CharField(verbose_name="nome", max_length=64)
 
@@ -55,12 +64,19 @@ class Ponto(models.Model):
 
 class Visita(models.Model):
     data = models.DateField()
+    inicio = models.DateTimeField()
+    termino = models.DateTimeField()
+    avaliador = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        null=True)
     itens = models.ManyToManyField(
         'checker.ItemBase',
         through='checker.Item',
         through_fields=('visita', 'itemBase'),
         blank=True,
     )
+    plantao = models.CharField(max_length=255, blank=True)
     """ Cadastro """
     t_created = models.DateField(auto_now_add=True)
     t_modified = models.DateField(auto_now=True)
@@ -69,7 +85,17 @@ class Visita(models.Model):
 class Item(models.Model):
     class Meta:
         ordering = ["itemBase__id"]
+
+    CONFORMIDADE_CHOICHES = [
+        ('C', 'Conforme'),
+        ('NC', 'Não Conforme'),
+        ('NCR', 'Não Conforme Resolvida'),
+        ('NA', 'Não Aplicável'),
+        ('NO', 'Não Observado'),
+    ]
     
+    conformidade = models.CharField(max_length=3,
+        choices=CONFORMIDADE_CHOICHES, default='NO')
     visita = models.ForeignKey('checker.Visita', on_delete=models.PROTECT)
     itemBase = models.ForeignKey('checker.ItemBase', on_delete=models.PROTECT)
     comment = models.CharField(max_length=255, blank=True)
@@ -78,9 +104,15 @@ class Item(models.Model):
 
 
 class ItemBase(models.Model):
+    id_arb = models.IntegerField(null=True)
     text = models.CharField(max_length=255)
     active = models.BooleanField(default=True)
 
     """ Cadastro """
     t_created = models.DateField(auto_now_add=True)
     t_modified = models.DateField(auto_now=True)
+
+
+class Categoria(models.Model):
+    id_arb = models.IntegerField(null=True)
+    nome = models.CharField(max_length=255)
