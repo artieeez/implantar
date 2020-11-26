@@ -2,14 +2,38 @@ from rest_framework import serializers
 from checker.models import Pessoa, Rede, Ponto, Visita, Item, ItemBase, Profile
 from django.contrib.auth.models import User, Group
 from rest_framework.reverse import reverse
+from django.conf import settings
 
-GRUPO_AVALIADORES = 'avaliador'
 
 class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
         fields = ['display_name']
+
+
+class ClienteCreateSerializer(serializers.ModelSerializer):
+    profile = ProfileSerializer()
+
+    class Meta:
+        model = User
+        fields = ['username', 'password', 'email', 'profile']
+
+    def create(self, validated_data):
+        user = User(
+            email=validated_data['email'],
+            username=validated_data['username']
+        )
+        user.set_password(validated_data['password'])
+        user.save()
+        try:
+            group = Group.objects.get(name=settings.CLIENTE_GROUP_NAME)
+            group.user_set.add(user)
+        except:
+            print("Err - Crie o grupo de clientes.")
+        profile_data = validated_data.pop('profile')
+        Profile.objects.create(user=user, **profile_data)
+        return user
 
 
 class AvaliadorCreateSerializer(serializers.ModelSerializer):
@@ -26,8 +50,11 @@ class AvaliadorCreateSerializer(serializers.ModelSerializer):
         )
         user.set_password(validated_data['password'])
         user.save()
-        group = Group.objects.get(name=GRUPO_AVALIADORES)
-        group.user_set.add(user)
+        try:
+            group = Group.objects.get(name=settings.AVALIADOR_GROUP_NAME)
+            group.user_set.add(user)
+        except:
+            print("Err - Crie o grupo de avaliadores.")
         profile_data = validated_data.pop('profile')
         Profile.objects.create(user=user, **profile_data)
         return user
@@ -61,7 +88,8 @@ class AvaliadorSerializer(serializers.ModelSerializer):
 class PessoaSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Pessoa
-        fields = ['url', 'id', 'nome', 'telefone', 'celular', 'email', 't_created', 't_modified']
+        fields = ['url', 'id', 'nome', 'telefone', 'celular', 'email',
+            't_created', 't_modified']
 
 
 class ItemBaseSerializer(serializers.ModelSerializer):
@@ -140,7 +168,8 @@ class VisitaSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class PontoSerializer(serializers.HyperlinkedModelSerializer):
-    rede_nome = serializers.SerializerMethodField('get_rede_nome', read_only=True)
+    rede_nome = serializers.SerializerMethodField('get_rede_nome',
+        read_only=True)
     rede_id = serializers.IntegerField(write_only=True)
 
     def get_rede_nome(self, ponto):
@@ -154,20 +183,39 @@ class PontoSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Ponto
-        fields = ['url', 'id', 'nome', 'rede_id', 'rede_nome', 't_created', 't_modified']
+        fields = ['url', 'id', 'nome', 'rede_id', 'rede_nome', 't_created',
+            't_modified']
 
 
 class RedeSerializer(serializers.HyperlinkedModelSerializer):
-    """ pontos = serializers.HyperlinkedRelatedField(many=True, view_name='pontos-list', read_only=True) """
+    """ pontos = serializers.HyperlinkedRelatedField(many=True, 
+        view_name='pontos-list', read_only=True) """
+    cliente = ClienteCreateSerializer()
     pontos = PontoSerializer(many=True, read_only=True)
     contatos = PessoaSerializer(many=True, read_only=True)
 
     class Meta:
         model = Rede
-        fields = ['url', 'id', 'nome', 'photo', 'pontos', 'contatos', 't_created', 't_modified']
+        fields = ['url', 'id', 'nome', 'photo', 'pontos', 'contatos',
+            't_created', 't_modified', 'cliente']
 
     def create(self, validated_data):
-        return Rede.objects.create(**validated_data)
+        cliente_data = validated_data.pop('cliente')
+        user = User(
+            email=cliente_data['email'],
+            username=cliente_data['username']
+        )
+        user.set_password(cliente_data['password'])
+        user.save()
+        try:
+            group = Group.objects.get(name=settings.CLIENTE_GROUP_NAME)
+            group.user_set.add(user)
+        except:
+            print("Err - Crie o grupo de clientes.")
+        profile_data = cliente_data.pop('profile')
+        Profile.objects.create(user=user, **profile_data)
+
+        return Rede.objects.create(cliente=user, **validated_data)
 
     def update(self, instance, validated_data):
         instance.nome = validated_data.get('nome', instance.nome)

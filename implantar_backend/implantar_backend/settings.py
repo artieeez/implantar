@@ -140,3 +140,6 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     ],
 }
+
+AVALIADOR_GROUP_NAME = 'avaliador'
+CLIENTE_GROUP_NAME = 'cliente'

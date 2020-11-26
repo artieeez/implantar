@@ -27,6 +27,10 @@ class Pessoa(models.Model):
 class Rede(models.Model):
     nome = models.CharField(max_length=64)
     photo = models.ImageField(upload_to='redes/', blank=True)
+    cliente = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True)
 
     pontos = models.ManyToManyField(
         'checker.Ponto',

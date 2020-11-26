@@ -14,14 +14,17 @@ from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination, LimitOffsetPagination
 from rest_framework import status
 from rest_framework import permissions
+from django.conf import settings
+
 
 # Auth
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
+from checker.permissions import IsOwnerOrReadOnly, IsAssigned, EoProprioUsuario
 
 
 class AvaliadorViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.exclude(profile__isnull=True)
+    queryset = User.objects.filter(groups__name=settings.AVALIADOR_GROUP_NAME)
     serializer_class = AvaliadorSerializer
 
     @action(detail=True, methods=['put'])
@@ -81,14 +84,21 @@ class AvaliadorViewSet(viewsets.ModelViewSet):
         return serializer_class
 
     def get_permissions(self):
-        if self.request.method == 'DELETE':
+        if self.detail and self.request.method == 'GET':
+            permission_classes = [IsAuthenticated]
+        else:
+            permission_classes = [IsAdminUser]
+        if self.action in ('password', 'username'):
+            permission_classes = [EoProprioUsuario]
+
+        """ if self.request.method == 'DELETE':
             permission_classes = [IsAdminUser]
         elif self.request.method == 'POST':
             permission_classes = [IsAuthenticated]
         else:
-            permission_classes = [IsAuthenticated]
-            # TODO
-            """ return [IsStaffOrTargetUser()] """
+            permission_classes = [IsAuthenticated] """
+        # TODO
+        """ return [IsStaffOrTargetUser()] """
         return [permission() for permission in permission_classes]
 
 
