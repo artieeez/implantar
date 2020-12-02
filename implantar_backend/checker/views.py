@@ -1,5 +1,6 @@
 from checker.models import Pessoa, Rede, Ponto, Visita, Item, ItemBase
 from checker.serializers import PessoaSerializer, RedeSerializer
+from checker.serializers import RedeSerializer, TrashRedeSerializer
 from checker.serializers import PontoSerializer, VisitaSerializer
 from checker.serializers import ItemBaseSerializer, AvaliadorSerializer
 from checker.serializers import AvaliadorCreateSerializer, AvaliadorPasswordSerializer, AvaliadorUsernameSerializer
@@ -13,8 +14,9 @@ from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination, LimitOffsetPagination
 from rest_framework import status
-from rest_framework import permissions
+from rest_framework import permissions, mixins
 from django.conf import settings
+from drf_trashbin import trash_mixins
 
 
 # Auth
@@ -102,15 +104,12 @@ class AvaliadorViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
 
-class RedeViewSet(viewsets.ModelViewSet):
-    queryset = Rede.objects.all()
-    serializer_class = RedeSerializer
-
+class PontosDaRedeMixins:
     @action(detail=True, methods=['get'])
     def pontos(self, request, pk, format=None):
         if request.method == 'GET':
             self.serializer_class = PontoSerializer
-            queryset = Rede.objects.get(id=pk).pontos.all()
+            queryset = Rede.objects.get(id=pk).pontos.filter(in_trash=False)
             page = self.paginate_queryset(queryset)
             if page is not None:
                 serializer = self.get_serializer(page, many=True)
@@ -120,10 +119,27 @@ class RedeViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
 
 
-class VisitaViewSet(viewsets.ModelViewSet):
-    queryset = Visita.objects.all()
-    serializer_class = VisitaSerializer
+class RedeViewSet(mixins.CreateModelMixin,
+                  mixins.RetrieveModelMixin,
+                  mixins.UpdateModelMixin,
+                  mixins.ListModelMixin,
+                  trash_mixins.SendToTrashModelMixin,
+                  PontosDaRedeMixins,
+                  viewsets.GenericViewSet):
+    queryset = Rede.objects.filter(in_trash=False)
+    serializer_class = RedeSerializer
 
+
+class TrashRedeViewSet(mixins.RetrieveModelMixin,
+                       mixins.ListModelMixin,
+                       trash_mixins.TrashMixin,
+                       PontosDaRedeMixins,
+                       viewsets.GenericViewSet):
+    queryset = Rede.objects.filter(in_trash=True)
+    serializer_class = TrashRedeSerializer
+
+
+class ItensMixin:
     @action(detail=True, methods=['get'])
     def itens(self, request, pk, format=None):
         if request.method == 'GET':
@@ -137,24 +153,33 @@ class VisitaViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(queryset, many=True)
             return Response(serializer.data)
 
-    def create(self, request):
-        if request.method == 'POST':
-            serializer = VisitaSerializer(data=request.data,
-                context={'request': request})
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class PontoViewSet(viewsets.ModelViewSet):
-    queryset = Ponto.objects.all()
-    serializer_class = PontoSerializer
+class VisitaViewSet(mixins.CreateModelMixin,
+                    mixins.RetrieveModelMixin,
+                    mixins.UpdateModelMixin,
+                    mixins.ListModelMixin,
+                    trash_mixins.SendToTrashModelMixin,
+                    ItensMixin,
+                    viewsets.GenericViewSet):
+    queryset = Visita.objects.filter(in_trash=False)
+    serializer_class = VisitaSerializer
 
+
+class TrashVisitaViewSet(mixins.RetrieveModelMixin,
+                        mixins.ListModelMixin,
+                        trash_mixins.TrashMixin,
+                        ItensMixin,
+                        viewsets.GenericViewSet):
+    queryset = Visita.objects.filter(in_trash=True)
+    serializer_class = VisitaSerializer
+
+
+class VisitasMixin:
     @action(detail=True, methods=['get'])
     def visitas(self, request, pk, format=None):
         if request.method == 'GET':
             self.serializer_class = VisitaSerializer
-            queryset = Ponto.objects.get(id=pk).visitas.all()
+            queryset = Ponto.objects.get(id=pk).visitas.filter(in_trash=False)
             page = self.paginate_queryset(queryset)
             if page is not None:
                 serializer = self.get_serializer(page, many=True)
@@ -164,13 +189,33 @@ class PontoViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
 
 
-class ItemViewSet(viewsets.ModelViewSet):
-    queryset = Item.objects.all()
-    serializer_class = ItemSerializer
+class PontoViewSet(mixins.CreateModelMixin,
+                    mixins.RetrieveModelMixin,
+                    mixins.UpdateModelMixin,
+                    mixins.ListModelMixin,
+                    trash_mixins.SendToTrashModelMixin,
+                    VisitasMixin,
+                    viewsets.GenericViewSet):
+    queryset = Ponto.objects.filter(in_trash=False)
+    serializer_class = PontoSerializer
+
+        
+class TrashPontoViewSet(mixins.RetrieveModelMixin,
+                        mixins.ListModelMixin,
+                        trash_mixins.TrashMixin,
+                        VisitasMixin,
+                        viewsets.GenericViewSet):
+    queryset = Ponto.objects.filter(in_trash=True)
+    serializer_class = PontoSerializer
 
 
-class ItemBaseViewSet(viewsets.ModelViewSet):
-    queryset = ItemBase.objects.all()
+class ItemBaseViewSet(mixins.CreateModelMixin,
+                  mixins.RetrieveModelMixin,
+                  mixins.UpdateModelMixin,
+                  mixins.ListModelMixin,
+                  trash_mixins.SendToTrashModelMixin,
+                  viewsets.GenericViewSet):
+    queryset = ItemBase.objects.filter(in_trash=False)
     serializer_class = ItemBaseSerializer
 
     @action(detail=False, methods=['get'])
@@ -184,59 +229,15 @@ class ItemBaseViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
+    def perform_destroy(self, instance):
+        instance.in_trash = True
+        instance.active = False
+        instance.save()
+    
 
-class MyPaginationMixin(object):
-    """
-    Retirado de rest_framework.generics.GenericAPIView
-    """
-    @property
-    def paginator(self):
-        """
-        The paginator instance associated with the view, or `None`.
-        """
-        if not hasattr(self, '_paginator'):
-            if self.pagination_class is None:
-                self._paginator = None
-            else:
-                self._paginator = self.pagination_class()
-        return self._paginator
-
-    def paginate_queryset(self, queryset):
-        """
-        Return a single page of results, or `None` if pagination 
-        is disabled.
-        """
-        if self.paginator is None:
-            return None
-        return self.paginator.paginate_queryset(
-            queryset, self.request, view=self)
-
-    def get_paginated_response(self, data):
-        """
-        Return a paginated style `Response` object for the given 
-        output data.
-        """
-        assert self.paginator is not None
-        return self.paginator.get_paginated_response(data)
-
-
-class pontosList(APIView, MyPaginationMixin):
-    """ 
-        EXEMPLO
-
-        Exemplo de classe com APIView implementando paginação.
-    """
-    authentication_classes = [TokenAuthentication, SessionAuthentication]
-    permission_classes = [IsAuthenticated]
-    pagination_class = PageNumberPagination
-    serializer_class = PontoSerializer
-
-    def get(self, request, pk, format=None):
-        """
-        Return a list of all users.
-        """
-        queryset = Rede.objects.get(id=pk).pontos.all()
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.serializer_class(page, many=True, context={'request': request})
-            return self.get_paginated_response(serializer.data)
+class TrashItemBaseViewSet(mixins.RetrieveModelMixin,
+                       mixins.ListModelMixin,
+                       trash_mixins.TrashMixin,
+                       viewsets.GenericViewSet):
+    queryset = ItemBase.objects.filter(in_trash=True)
+    serializer_class = ItemBaseSerializer

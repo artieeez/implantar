@@ -9,6 +9,7 @@ class Profile(models.Model):
         on_delete=models.CASCADE,
         null=True)
     display_name = models.CharField(max_length=255)
+    in_trash = models.BooleanField(default=False)
 
 
 class Pessoa(models.Model):
@@ -43,6 +44,8 @@ class Rede(models.Model):
     """ Cadastro """
     t_created = models.DateField(auto_now_add=True)
     t_modified = models.DateField(auto_now=True)
+    in_trash = models.BooleanField(default=False)
+
 
     def __str__(self):
         return f'{self.nome}'
@@ -58,6 +61,9 @@ class Ponto(models.Model):
     """ Cadastro """
     t_created = models.DateField(auto_now_add=True)
     t_modified = models.DateField(auto_now=True)
+    deleted = models.BooleanField(default=False)
+    in_trash = models.BooleanField(default=False)
+
 
     """ def save(self, *args, **kwargs):
         print(**kwargs)
@@ -75,7 +81,7 @@ class Ponto(models.Model):
 class Visita(models.Model):
     data = models.DateField()
     inicio = models.DateTimeField()
-    termino = models.DateTimeField()
+    termino = models.DateTimeField(null=True)
     avaliador = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
@@ -90,6 +96,7 @@ class Visita(models.Model):
     """ Cadastro """
     t_created = models.DateField(auto_now_add=True)
     t_modified = models.DateField(auto_now=True)
+    in_trash = models.BooleanField(default=False)
 
 
 class Item(models.Model):
@@ -113,6 +120,7 @@ class Item(models.Model):
 
 
 
+
 class ItemBase(models.Model):
     id_arb = models.IntegerField(null=True)
     text = models.CharField(max_length=255)
@@ -123,6 +131,7 @@ class ItemBase(models.Model):
     """ Cadastro """
     t_created = models.DateField(auto_now_add=True)
     t_modified = models.DateField(auto_now=True)
+    in_trash = models.BooleanField(default=False)
 
 
 class Categoria(models.Model):
