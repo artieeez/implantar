@@ -5,6 +5,7 @@ from checker.serializers import PontoSerializer, VisitaSerializer
 from checker.serializers import ItemBaseSerializer, AvaliadorSerializer
 from checker.serializers import AvaliadorCreateSerializer, AvaliadorPasswordSerializer, AvaliadorUsernameSerializer
 from checker.serializers import ItemSerializer, AvaliadorUsernameSerializer
+from checker.serializers import ItemPhotoSerializer
 from rest_framework import generics, renderers, viewsets
 from django.contrib.auth.models import User
 from rest_framework import permissions
@@ -17,6 +18,9 @@ from rest_framework import status
 from rest_framework import permissions, mixins
 from django.conf import settings
 from drf_trashbin import trash_mixins
+
+# File upload
+from rest_framework.parsers import MultiPartParser, FormParser
 
 
 # Auth
@@ -137,6 +141,32 @@ class TrashRedeViewSet(mixins.RetrieveModelMixin,
                        viewsets.GenericViewSet):
     queryset = Rede.objects.filter(in_trash=True)
     serializer_class = TrashRedeSerializer
+
+
+class ItemPhotoUpload(APIView):
+    parser_classes = [MultiPartParser, FormParser]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk, format=None):
+        instance = Item.objects.get(pk=pk)
+        if (self.check_user(request, instance)):
+            serializer = ItemPhotoSerializer(data=request.data,
+                instance=instance)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response(serializer.errors,
+                    status=status.HTTP_400_BAD_REQUEST)
+        return Response({'Message': 'Você não é o avaliador desta visita'},
+            status=status.HTTP_401_UNAUTHORIZED)
+        
+
+    def check_user(request, instance):
+        """ Verifica se usuário é o avaliador da visita """
+        user = request.user
+        dono_da_visita = instance.visita.avaliador
+        return user == dono_da_visita
 
 
 class ItensMixin:

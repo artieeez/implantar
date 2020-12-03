@@ -24,4 +24,5 @@ urlpatterns = [
     path('item_base/active', views.ItemBaseViewSet.as_view({'get': 'active'})),
     path('avaliadores/<int:pk>/username_reset', views.AvaliadorViewSet.as_view({'put': 'username'})),
     path('avaliadores/<int:pk>/password_reset', views.AvaliadorViewSet.as_view({'put': 'password'})),
+    path("item-photo/<int:pk>/", views.ItemPhotoUpload.as_view(), name="rest_item_photo_upload"),
 ]

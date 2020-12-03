@@ -239,3 +239,14 @@ class TrashRedeSerializer(_BaseRedeSerializer):
         extra_kwargs = {
             'url': {'view_name': 'trash-rede-detail'},
         }
+
+
+class ItemPhotoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Item
+        fields = ["photo"]
+
+    def save(self, *args, **kwargs):
+        if self.instance.photo:
+            self.instance.photo.delete()
+        return super().save(*args, **kwargs)
