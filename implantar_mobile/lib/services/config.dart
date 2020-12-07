@@ -6,4 +6,5 @@ const Map<String, String> API = {
   'base': 'http://192.168.0.10:8080/',
   'auth': 'api-token-auth/',
   'redes': 'api/redes/',
+  'visitas': 'api/visitas/',
 };

@@ -1,5 +1,9 @@
 import 'package:implantar_mobile/api/managers.dart';
 import 'package:implantar_mobile/services/user.dart';
+import 'package:http/http.dart' as http;
+import 'package:implantar_mobile/services/config.dart' as co;
+import 'dart:io';
+import 'dart:convert';
 
 class ApiObject {
   String url;
@@ -65,14 +69,56 @@ class Ponto extends ApiObject {
 }
 
 class Visita {
-  int id;
+  String API_BASE;
+  String API_ENDPOINT;
+  User user;
+  Rede rede;
   Ponto ponto;
-  String data;
-  String t_created;
-  List<ChecklistItem> itens;
+  List<ChecklistItem> itens = [];
 
-  Visita.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
+  int id;
+
+  Visita(rede, ponto, user) {
+    this.rede = rede;
+    this.ponto = ponto;
+    this.user = user;
+    this.API_BASE = co.API['base'];
+    this.API_ENDPOINT = co.API['visitas'];
+  }
+
+  Future<void> create() async {
+    int count = 0; // tentativas de conexão
+    while (count < co.CONN_LIMIT) {
+      try {
+        http.Response response = await http.post(
+          API_BASE + API_ENDPOINT,
+          headers: <String, String>{
+            'Authorization': 'token ' + user.token,
+            'Content-Type': 'application/json; charset=UTF-8',
+          },
+          body: jsonEncode(<String, String>{
+            'ponto_id': ponto.id.toString(),
+          }),
+        );
+        if (response.statusCode == 200) {
+          Map data = jsonDecode(response.body);
+          id = data['id'];
+          for (int i; i < data['item_set'].length; i++) {
+            ChecklistItem item = ChecklistItem.fromJson(data['item_set'][i]);
+            itens.add(item);
+          }
+          print(itens[0].text);
+          return;
+        } else {
+          return;
+        }
+      } catch (e) {
+        print(e);
+        count++;
+        sleep(const Duration(seconds: 5));
+      }
+    }
+    return;
   }
 }
 
@@ -82,6 +128,7 @@ class ChecklistItem {
   String text;
   dynamic photo;
   String comment;
+  String conformidade;
   bool isOk;
   bool isReady;
 

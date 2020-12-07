@@ -80,7 +80,9 @@ class _RedeListState extends State<RedeList> {
         ),
       ),
       leading: CircleAvatar(
-        backgroundImage: NetworkImage(rede.photo),
+        backgroundImage: rede.photo != null
+            ? NetworkImage(rede.photo)
+            : NetworkImage('https://via.placeholder.com/150'),
       ),
     );
   }

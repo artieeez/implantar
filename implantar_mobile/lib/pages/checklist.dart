@@ -21,20 +21,21 @@ class _ChecklistState extends State<Checklist> {
   User user;
   Rede rede;
   Ponto ponto;
-  List dummy = [
-    {
-      'id': 1,
-      'text':
-          'Lorem ipsum is placeholder text commonly used in the graphic, print, and publishing industries for previewing layouts and visual mockups.',
-      'ok': false,
-    },
-    {
-      'id': 1,
-      'text': 'Local limpo.',
-      'ok': false,
-    },
-  ];
+  Visita visita;
   _ChecklistState(this.user, this.rede, this.ponto);
+
+  void _newChecklist() async {
+    visita = Visita(rede, ponto, user);
+    setState(() async {
+      await visita.create();
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _newChecklist();
+  }
 
   Widget _buildDescription(index) {
     return Container(
@@ -61,7 +62,7 @@ class _ChecklistState extends State<Checklist> {
           Expanded(
             flex: 10,
             child: Text(
-              dummy[index]['text'],
+              visita.itens[index].text,
               style: TextStyle(
                 fontSize: 20.0,
               ),
@@ -126,11 +127,6 @@ class _ChecklistState extends State<Checklist> {
   }
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async => false,
@@ -144,7 +140,7 @@ class _ChecklistState extends State<Checklist> {
         ),
         body: ListView.builder(
           padding: EdgeInsets.symmetric(vertical: 10, horizontal: 5.0),
-          itemCount: dummy.length,
+          itemCount: visita.itens.length,
           itemBuilder: (context, index) {
             return Padding(
               padding: EdgeInsets.symmetric(vertical: 10.0),
