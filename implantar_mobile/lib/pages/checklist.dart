@@ -26,8 +26,9 @@ class _ChecklistState extends State<Checklist> {
 
   void _newChecklist() async {
     visita = Visita(rede, ponto, user);
-    setState(() async {
-      await visita.create();
+    await visita.create();
+    setState(() {
+      print(visita.itens[0].text);
     });
   }
 
@@ -84,14 +85,26 @@ class _ChecklistState extends State<Checklist> {
           flex: 1,
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.red,
+              color: visita.itens[index].conformidade == 'NC'
+                  ? Colors.redAccent
+                  : Colors.red[100],
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(kBorderRadius),
               ),
             ),
             height: kButtonHeight,
-            child: Icon(
-              Icons.cancel,
+            child: TextButton(
+              onPressed: () {
+                setState(() {
+                  visita.itens[index].conformidade = 'NC';
+                });
+              },
+              child: Icon(
+                Icons.cancel,
+                color: visita.itens[index].conformidade == 'NC'
+                    ? Colors.white
+                    : Colors.white24,
+              ),
             ),
           ),
         ),
@@ -102,8 +115,12 @@ class _ChecklistState extends State<Checklist> {
               color: Colors.grey[300],
             ),
             height: kButtonHeight,
-            child: Icon(
-              Icons.camera_alt,
+            child: TextButton(
+              onPressed: () {},
+              child: Icon(
+                Icons.camera_alt,
+                color: Colors.white54,
+              ),
             ),
           ),
         ),
@@ -111,14 +128,26 @@ class _ChecklistState extends State<Checklist> {
           flex: 1,
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.green,
+              color: visita.itens[index].conformidade == 'C'
+                  ? Colors.green[400]
+                  : Colors.green[100],
               borderRadius: BorderRadius.only(
                 bottomRight: Radius.circular(kBorderRadius),
               ),
             ),
             height: kButtonHeight,
-            child: Icon(
-              Icons.check,
+            child: TextButton(
+              onPressed: () {
+                setState(() {
+                  visita.itens[index].conformidade = 'C';
+                });
+              },
+              child: Icon(
+                Icons.check,
+                color: visita.itens[index].conformidade == 'C'
+                    ? Colors.white
+                    : Colors.white24,
+              ),
             ),
           ),
         ),
@@ -138,32 +167,48 @@ class _ChecklistState extends State<Checklist> {
             style: kFont1,
           ),
         ),
-        body: ListView.builder(
-          padding: EdgeInsets.symmetric(vertical: 10, horizontal: 5.0),
-          itemCount: visita.itens.length,
-          itemBuilder: (context, index) {
-            return Padding(
-              padding: EdgeInsets.symmetric(vertical: 10.0),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(kBorderRadius),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey,
-                      offset: Offset(0.0, 1.0), //(x,y)
-                      blurRadius: 6.0,
+        body: Column(
+          children: <Widget>[
+            ListView.builder(
+              shrinkWrap: true,
+              padding: EdgeInsets.symmetric(vertical: 10, horizontal: 5.0),
+              itemCount: visita.itens.length,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: EdgeInsets.symmetric(vertical: 10.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(kBorderRadius),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey,
+                          offset: Offset(0.0, 1.0), //(x,y)
+                          blurRadius: 6.0,
+                        ),
+                      ],
                     ),
-                  ],
+                    child: Column(
+                      children: [
+                        _buildDescription(index),
+                        _buildActionBAr(index),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+            ButtonBar(
+              children: [
+                RaisedButton(
+                  onPressed: () async {
+                    await visita.update();
+                    Navigator.pop(context);
+                  },
+                  child: Text('Concluir'),
                 ),
-                child: Column(
-                  children: [
-                    _buildDescription(index),
-                    _buildActionBAr(index),
-                  ],
-                ),
-              ),
-            );
-          },
+              ],
+            ),
+          ],
         ),
       ),
     );

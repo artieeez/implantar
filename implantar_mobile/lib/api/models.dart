@@ -100,16 +100,56 @@ class Visita {
             'ponto_id': ponto.id.toString(),
           }),
         );
-        if (response.statusCode == 200) {
-          Map data = jsonDecode(response.body);
+        if (response.statusCode == 201) {
+          Map data = jsonDecode(utf8.decode(response.bodyBytes));
+          print(data);
           id = data['id'];
-          for (int i; i < data['item_set'].length; i++) {
+          for (int i = 0; i < data['item_set'].length; i++) {
             ChecklistItem item = ChecklistItem.fromJson(data['item_set'][i]);
             itens.add(item);
           }
           print(itens[0].text);
           return;
         } else {
+          return;
+        }
+      } catch (e) {
+        print(e);
+        count++;
+        sleep(const Duration(seconds: 5));
+      }
+    }
+    return;
+  }
+
+  Future<void> update() async {
+    int count = 0; // tentativas de conexão
+    while (count < co.CONN_LIMIT) {
+      try {
+        List<Map> item_set = [];
+        for (int i = 0; i < itens.length; i++) {
+          Map<String, dynamic> item = {
+            'conformidade': itens[i].conformidade,
+            'id': itens[i].id,
+          };
+          item_set.add(item);
+        }
+
+        http.Response response = await http.put(
+          API_BASE + API_ENDPOINT + this.id.toString() + '/',
+          headers: <String, String>{
+            'Authorization': 'token ' + user.token,
+            'Content-Type': 'application/json; charset=UTF-8',
+          },
+          body: jsonEncode(<String, dynamic>{
+            'item_set': item_set,
+            'plantao': 'PLACEHOLDER000',
+          }),
+        );
+        if (response.statusCode == 201) {
+          return;
+        } else {
+          print(response.body);
           return;
         }
       } catch (e) {
@@ -134,6 +174,6 @@ class ChecklistItem {
 
   ChecklistItem.fromJson(Map<String, dynamic> json) {
     id = json['id'];
-    text = json['text'];
+    text = json['itemBase']['text'];
   }
 }
