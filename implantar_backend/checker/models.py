@@ -46,6 +46,8 @@ class Rede(models.Model):
     t_modified = models.DateField(auto_now=True)
     in_trash = models.BooleanField(default=False)
 
+    class Meta:
+        ordering = ['nome']
 
     def __str__(self):
         return f'{self.nome}'
@@ -74,6 +76,9 @@ class Ponto(models.Model):
             # have pk
         super(MyModel, self).save(*args, **kwargs) """
 
+    class Meta:
+        ordering = ['t_created']
+
     def __str__(self):
         return f'{self.nome}'
 
@@ -98,6 +103,12 @@ class Visita(models.Model):
     t_modified = models.DateField(auto_now=True)
     in_trash = models.BooleanField(default=False)
 
+    class Meta:
+        ordering = ['t_created']
+
+    """ def __str__(self):
+        return f'{ponto_set.}' """
+
 
 class Item(models.Model):
     class Meta:
@@ -118,7 +129,8 @@ class Item(models.Model):
     comment = models.CharField(max_length=255, blank=True)
     photo = models.ImageField(upload_to='checklist_data/images/', blank=True)
 
-
+    class Meta:
+        ordering = ['itemBase__categoria__id_arb', 'itemBase__id_arb']
 
 
 class ItemBase(models.Model):
@@ -133,7 +145,13 @@ class ItemBase(models.Model):
     t_modified = models.DateField(auto_now=True)
     in_trash = models.BooleanField(default=False)
 
+    class Meta:
+        ordering = ['categoria__id_arb', 'id_arb']
+
 
 class Categoria(models.Model):
     id_arb = models.IntegerField(null=True)
     nome = models.CharField(max_length=255)
+
+    class Meta:
+        ordering = ['id_arb']
