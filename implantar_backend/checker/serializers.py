@@ -4,6 +4,8 @@ from django.contrib.auth.models import User, Group
 from rest_framework.reverse import reverse
 from django.conf import settings
 import datetime
+from django.utils import timezone
+import pytz
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -150,7 +152,7 @@ class VisitaSerializer(serializers.HyperlinkedModelSerializer):
     def create(self, validated_data):
         avaliador = self.context['request'].user
         data = datetime.date.today()
-        inicio = datetime.datetime.now()
+        inicio = timezone.now()
         v = Visita.objects.create(data=data,
             inicio=inicio, avaliador=avaliador)
         Ponto.objects.get(id=validated_data['ponto_id']).visitas.add(v)
@@ -162,7 +164,7 @@ class VisitaSerializer(serializers.HyperlinkedModelSerializer):
 
     def update(self, instance, validated_data):
         if instance.termino is None:
-            instance.termino = datetime.datetime.now()
+            instance.termino = timezone.now()
         instance.plantao = validated_data['plantao']
         itens = validated_data.pop('item_set')
         for row in itens:
@@ -247,6 +249,7 @@ class ItemPhotoSerializer(serializers.ModelSerializer):
         fields = ["photo"]
 
     def save(self, *args, **kwargs):
+        print(self.instance.photo)
         if self.instance.photo:
             self.instance.photo.delete()
         return super().save(*args, **kwargs)

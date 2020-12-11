@@ -106,8 +106,11 @@ class Visita(models.Model):
     class Meta:
         ordering = ['t_created']
 
-    """ def __str__(self):
-        return f'{ponto_set.}' """
+    def __str__(self):
+        return f"""{self.ponto_set.first().rede_set.first().nome}
+                {self.ponto_set.first().nome} 
+                ({self.data.day}/{self.data.month}/{self.data.year})
+                -> {self.avaliador.profile.display_name}"""
 
 
 class Item(models.Model):

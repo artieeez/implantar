@@ -7,4 +7,5 @@ const Map<String, String> API = {
   'auth': 'api-token-auth/',
   'redes': 'api/redes/',
   'visitas': 'api/visitas/',
+  'item-photo': 'api/item-photo/',
 };

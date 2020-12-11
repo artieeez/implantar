@@ -1,7 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:implantar_mobile/pages/TakePictureScreen.dart';
 import 'package:implantar_mobile/services/user.dart';
 import 'package:implantar_mobile/utilities/constantes.dart';
 import 'package:implantar_mobile/api/models.dart';
+import 'package:implantar_mobile/pages/TakePictureScreen.dart';
+
+/* Camera */
+import 'dart:async';
+import 'dart:io';
+import 'package:camera/camera.dart';
+import 'package:path/path.dart' show join;
+import 'package:path_provider/path_provider.dart';
+
+/* PhotoUpload */
+import 'package:http/http.dart' as http;
+import 'package:implantar_mobile/services/config.dart' as co;
 
 class Checklist extends StatefulWidget {
   final User user;
@@ -30,6 +43,20 @@ class _ChecklistState extends State<Checklist> {
     setState(() {
       print(visita.itens[0].text);
     });
+  }
+
+  void _uploadPhoto(ChecklistItem item, String path) async {
+    var request = http.MultipartRequest(
+        'POST',
+        Uri.parse(
+            co.API['base'] + co.API['item-photo'] + item.id.toString() + '/'));
+    request.files.add(
+      http.MultipartFile(
+          'photo', File(path).readAsBytes().asStream(), File(path).lengthSync(),
+          filename: path.split("/").last),
+    );
+    request.headers['Authorization'] = 'token ' + user.token;
+    var res = await request.send();
   }
 
   @override
@@ -116,7 +143,22 @@ class _ChecklistState extends State<Checklist> {
             ),
             height: kButtonHeight,
             child: TextButton(
-              onPressed: () {},
+              onPressed: () async {
+                WidgetsFlutterBinding.ensureInitialized();
+                // Obtain a list of the available cameras on the device.
+                final cameras = await availableCameras();
+                // Get a specific camera from the list of available cameras.
+                final firstCamera = cameras.first;
+                final photo_path = await Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => TakePictureScreen(
+                        camera: firstCamera,
+                        visita: visita,
+                        item: visita.itens[index]),
+                  ),
+                );
+                _uploadPhoto(visita.itens[index], photo_path);
+              },
               child: Icon(
                 Icons.camera_alt,
                 color: Colors.white54,

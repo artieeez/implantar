@@ -28,6 +28,9 @@ dependencies:
   sqflite:
   path:
   permission_handler: ^5.0.1+1
+  camera:
+  path_provider:
+
 
 
   # The following adds the Cupertino Icons font to your application.

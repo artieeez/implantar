@@ -28,7 +28,7 @@ class ApiManagers {
           headers: {'Authorization': 'token ' + user.token},
         );
         if (response.statusCode == 200) {
-          Map data = jsonDecode(response.body);
+          Map data = jsonDecode(utf8.decode(response.bodyBytes));
           count = data['count'];
           next = data['next'];
           previous = data['previous'];

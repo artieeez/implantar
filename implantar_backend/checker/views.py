@@ -162,7 +162,7 @@ class ItemPhotoUpload(APIView):
             status=status.HTTP_401_UNAUTHORIZED)
         
 
-    def check_user(request, instance):
+    def check_user(self, request, instance):
         """ Verifica se usuário é o avaliador da visita """
         user = request.user
         dono_da_visita = instance.visita.avaliador
