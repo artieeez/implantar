@@ -141,7 +141,7 @@ class VisitaSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Visita
         fields = ['url', 'id', 'ponto_id', 'data', 'inicio', 'termino', 
-            'avaliador', 'plantao', 'item_set', 't_created', 't_modified']
+            'avaliador', 'signature', 'plantao', 'item_set', 't_created', 't_modified']
         extra_kwargs = {
             'avaliador': {'read_only': True},
             'data': {'read_only': True},
@@ -249,7 +249,17 @@ class ItemPhotoSerializer(serializers.ModelSerializer):
         fields = ["photo"]
 
     def save(self, *args, **kwargs):
-        print(self.instance.photo)
         if self.instance.photo:
             self.instance.photo.delete()
+        return super().save(*args, **kwargs)
+
+
+class SignatureSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Visita
+        fields = ["signature"]
+
+    def save(self, *args, **kwargs):
+        if self.instance.signature:
+            self.instance.signature.delete()
         return super().save(*args, **kwargs)

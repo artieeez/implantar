@@ -91,6 +91,7 @@ class Visita(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
         null=True)
+    signature = models.ImageField(upload_to='checklist_data/signatures/', blank=True)
     itens = models.ManyToManyField(
         'checker.ItemBase',
         through='checker.Item',

@@ -3,14 +3,14 @@ import 'package:implantar_mobile/pages/TakePictureScreen.dart';
 import 'package:implantar_mobile/services/user.dart';
 import 'package:implantar_mobile/utilities/constantes.dart';
 import 'package:implantar_mobile/api/models.dart';
-import 'package:implantar_mobile/pages/TakePictureScreen.dart';
+import 'package:implantar_mobile/pages/checklist_signature.dart';
+
+/* orientation */
+import 'package:flutter/services.dart';
 
 /* Camera */
-import 'dart:async';
 import 'dart:io';
 import 'package:camera/camera.dart';
-import 'package:path/path.dart' show join;
-import 'package:path_provider/path_provider.dart';
 
 /* PhotoUpload */
 import 'package:http/http.dart' as http;
@@ -62,6 +62,9 @@ class _ChecklistState extends State<Checklist> {
   @override
   void initState() {
     super.initState();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
     _newChecklist();
   }
 
@@ -239,14 +242,39 @@ class _ChecklistState extends State<Checklist> {
                 );
               },
             ),
-            ButtonBar(
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 RaisedButton(
                   onPressed: () async {
+                    dynamic temp = await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => ChecklistSignature(
+                            user: user,
+                            rede: rede,
+                            ponto: ponto,
+                            visita: visita),
+                      ),
+                    );
                     await visita.update();
                     Navigator.pop(context);
                   },
-                  child: Text('Concluir'),
+                  color: kPrimaryColor,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.navigate_next,
+                        color: Colors.white,
+                      ),
+                      Text(
+                        'Prosseguir para a coleta de assinatura',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18.0,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),

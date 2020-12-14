@@ -8,4 +8,5 @@ const Map<String, String> API = {
   'redes': 'api/redes/',
   'visitas': 'api/visitas/',
   'item-photo': 'api/item-photo/',
+  'signature': 'api/signature/',
 };
