@@ -6,6 +6,9 @@ import 'package:implantar_mobile/pages/drawer.dart';
 import 'package:implantar_mobile/api/models.dart';
 import 'package:implantar_mobile/api/managers.dart';
 
+/* Screen Orientation */
+import 'package:flutter/services.dart';
+
 class RedeList extends StatefulWidget {
   final User user;
   RedeList({Key key, @required this.user}) : super(key: key);
@@ -33,6 +36,9 @@ class _RedeListState extends State<RedeList> {
   @override
   void initState() {
     super.initState();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
     _getList();
   }
 

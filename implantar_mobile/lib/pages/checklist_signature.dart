@@ -7,8 +7,10 @@ import 'package:path/path.dart' show join;
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 
-/* Signature */
+/* Screen Orientation */
 import 'package:flutter/services.dart';
+
+/* Signature */
 import 'package:signature/signature.dart';
 
 /* SignatureUpload */

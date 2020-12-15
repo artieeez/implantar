@@ -6,6 +6,9 @@ import 'package:implantar_mobile/pages/checklist.dart';
 import 'package:implantar_mobile/api/managers.dart';
 import 'package:implantar_mobile/api/models.dart';
 
+/* Screen Orientation */
+import 'package:flutter/services.dart';
+
 class PontoList extends StatefulWidget {
   final User user;
   final Rede rede;
@@ -36,6 +39,9 @@ class _PontoListState extends State<PontoList> {
   @override
   void initState() {
     super.initState();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
     getList();
   }
 

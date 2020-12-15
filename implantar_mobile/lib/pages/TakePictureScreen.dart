@@ -6,6 +6,7 @@ import 'package:path/path.dart' show join;
 import 'package:path_provider/path_provider.dart';
 import 'package:implantar_mobile/pages/DisplayPictureScreen.dart';
 import 'package:implantar_mobile/api/models.dart';
+import 'dart:io';
 
 class TakePictureScreen extends StatefulWidget {
   final CameraDescription camera;
@@ -80,7 +81,6 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
         onPressed: () async {
           // Take the Picture in a try / catch block. If anything goes wrong,
           // catch the error.
-          bool picTaken = false;
           try {
             // Ensure that the camera is initialized.
             await _initializeControllerFuture;
@@ -91,7 +91,7 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
               // Store the picture in the temp directory.
               // Find the temp directory using the `path_provider` plugin.
               (await getTemporaryDirectory()).path,
-              'v_${visita.id.toString()}_${item.id}.png',
+              'v_${visita.id.toString()}_${item.id.toString()}.png',
             );
 
             // Attempt to take a picture and log where it's been saved.
@@ -106,10 +106,12 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
                 ),
               ),
             );
+            print(picTaken);
             if (picTaken) {
-              print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-              print(path);
               Navigator.pop(context, path);
+            } else {
+              /* Caso a foto tirada não seja aceita, excluir. */
+              File(path).delete();
             }
           } catch (e) {
             // If an error occurs, log the error to the console.

@@ -4,6 +4,9 @@ import 'package:implantar_mobile/pages/rede.dart';
 import 'package:implantar_mobile/services/user.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+/* Screen Orientation */
+import 'package:flutter/services.dart';
+
 class Loading extends StatefulWidget {
   @override
   _LoadingState createState() => _LoadingState();
@@ -26,6 +29,9 @@ class _LoadingState extends State<Loading> {
   @override
   void initState() {
     super.initState();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
     Permission.storage.request();
     login();
   }

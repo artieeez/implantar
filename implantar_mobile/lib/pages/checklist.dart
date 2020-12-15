@@ -160,7 +160,13 @@ class _ChecklistState extends State<Checklist> {
                         item: visita.itens[index]),
                   ),
                 );
-                _uploadPhoto(visita.itens[index], photo_path);
+                if (photo_path != null) {
+                  try {
+                    _uploadPhoto(visita.itens[index], photo_path);
+                  } catch (e) {
+                    /* salvar no armazenamento interno */
+                  }
+                }
               },
               child: Icon(
                 Icons.camera_alt,
