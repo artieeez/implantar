@@ -23,11 +23,12 @@ class User {
     /* Pega referência do banco */
     db = await getDatabase();
     /* Verifica se possuí token válido */
-    if (await userExistCheck()) {
+    bool _credentialSaved = await userExistCheck();
+    if (_credentialSaved) {
       Map userMap = await getUser();
       await populateWithMap(userMap);
     }
-    if (isOnline) {
+    if (isOnline && _credentialSaved) {
       isAuthenticated = await tokenValidation(token);
     }
     if (isOnline && !isAuthenticated) {
@@ -72,7 +73,7 @@ class User {
     return maps[0];
   }
 
-  Future<bool> tokenValidation(tokenToBeValidated) async {
+  Future<bool> tokenValidation(String tokenToBeValidated) async {
     int count = 0; // tentativas de conexão
     /* Testa token acessando a raiz da api */
     while (count < co.CONN_LIMIT) {
@@ -112,11 +113,6 @@ class User {
       // `path` package is best practice to ensure the path is correctly
       // constructed for each platform.
       join(await getDatabasesPath(), 'implantar.db'),
-      onCreate: (db, version) {
-        return db.execute(
-          "CREATE TABLE user(id AUTO_INCREMENT INTEGER PRIMARY KEY, nome TEXT, token TEXT)",
-        );
-      },
       version: 1,
     );
   }

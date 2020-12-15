@@ -16,6 +16,25 @@ import 'package:camera/camera.dart';
 import 'package:http/http.dart' as http;
 import 'package:implantar_mobile/services/config.dart' as co;
 
+/* Files */
+import 'package:path_provider/path_provider.dart';
+/* Data Storage */
+import 'dart:async';
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
+
+Future<File> _moveFile(File sourceFile, String newPath) async {
+  try {
+    // prefer using rename as it is probably faster
+    return await sourceFile.rename(newPath);
+  } on FileSystemException catch (e) {
+    // if rename fails, copy the source file and then delete it
+    final newFile = await sourceFile.copy(newPath);
+    await sourceFile.delete();
+    return newFile;
+  }
+}
+
 class Checklist extends StatefulWidget {
   final User user;
   final Rede rede;
@@ -45,7 +64,22 @@ class _ChecklistState extends State<Checklist> {
     });
   }
 
-  void _uploadPhoto(ChecklistItem item, String path) async {
+  Future<String> _takePic(ChecklistItem item) async {
+    WidgetsFlutterBinding.ensureInitialized();
+    // Obtain a list of the available cameras on the device.
+    final cameras = await availableCameras();
+    // Get a specific camera from the list of available cameras.
+    final firstCamera = cameras.first;
+    String path = await Navigator.of(this.context).push(
+      MaterialPageRoute(
+        builder: (context) =>
+            TakePictureScreen(camera: firstCamera, visita: visita, item: item),
+      ),
+    );
+    return path;
+  }
+
+  Future<dynamic> _uploadPhoto(ChecklistItem item, String path) async {
     var request = http.MultipartRequest(
         'POST',
         Uri.parse(
@@ -57,6 +91,7 @@ class _ChecklistState extends State<Checklist> {
     );
     request.headers['Authorization'] = 'token ' + user.token;
     var res = await request.send();
+    return res;
   }
 
   @override
@@ -147,24 +182,52 @@ class _ChecklistState extends State<Checklist> {
             height: kButtonHeight,
             child: TextButton(
               onPressed: () async {
-                WidgetsFlutterBinding.ensureInitialized();
-                // Obtain a list of the available cameras on the device.
-                final cameras = await availableCameras();
-                // Get a specific camera from the list of available cameras.
-                final firstCamera = cameras.first;
-                final photo_path = await Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => TakePictureScreen(
-                        camera: firstCamera,
-                        visita: visita,
-                        item: visita.itens[index]),
-                  ),
-                );
-                if (photo_path != null) {
+                ChecklistItem item = visita.itens[index];
+                /* Retorna caminho temporário da imagem. */
+                final _tempPath = await _takePic(item);
+                /* Tenta fazer o upload da imagem/ armazenar no smartphone */
+                if (_tempPath != null) {
                   try {
-                    _uploadPhoto(visita.itens[index], photo_path);
+                    var res =
+                        await _uploadPhoto(visita.itens[index], _tempPath);
+                    if (res.statusCode == 200) {
+                      File(_tempPath).delete();
+                    } else {
+                      throw ('Falha ao fazer upload');
+                    }
                   } catch (e) {
-                    /* salvar no armazenamento interno */
+                    /* Em caso de erro, armazena no smartphone */
+                    final directory = await getApplicationDocumentsDirectory();
+                    String _appPath =
+                        '${directory.path}/v_${visita.id.toString()}_${item.id.toString()}.png';
+                    _moveFile(File(_tempPath), _appPath);
+                    /* Salvar path no sql */
+                    WidgetsFlutterBinding.ensureInitialized();
+                    // Open the database and store the reference.
+                    Database db = await openDatabase(
+                      // Set the path to the database. Note: Using the `join` function from the
+                      // `path` package is best practice to ensure the path is correctly
+                      // constructed for each platform.
+                      join(await getDatabasesPath(), 'implantar.db'),
+                      version: 1,
+                    );
+                    try {
+                      await db.update(
+                          'ck_item', {'id': item.id, 'photo': _appPath},
+                          where: 'id = ?', whereArgs: [item.id]);
+                      print(">>>>>>>>>>>>>>>>");
+                      print("UPDATEEEEEEEEEEES");
+                    } catch (e) {
+                      print(">>>>>>>>>>>>>>>>");
+                      print(e);
+                      print(">>>>>>>>>>>>>>>>");
+                      await db.insert(
+                        'ck_item',
+                        {'id': item.id, 'photo': _appPath},
+                        conflictAlgorithm: ConflictAlgorithm.replace,
+                      );
+                    }
+                    return;
                   }
                 }
               },
