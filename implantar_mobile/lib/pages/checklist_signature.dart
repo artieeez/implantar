@@ -75,6 +75,7 @@ class _ChecklistSignatureState extends State<ChecklistSignature> {
     );
     request.headers['Authorization'] = 'token ' + user.token;
     var res = await request.send();
+    Navigator.pop(context, res);
   }
 
   @override

@@ -166,7 +166,8 @@ class ChecklistItem {
   int id;
   int item;
   String text;
-  dynamic photo;
+  String _photo;
+  int photoVersion = 0;
   String comment;
   String conformidade;
   bool isOk;
@@ -175,5 +176,12 @@ class ChecklistItem {
   ChecklistItem.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     text = json['itemBase']['text'];
+    photoVersion = 1;
   }
+  set photo(String path) {
+    _photo = path;
+    photoVersion += 1;
+  }
+
+  String get photo => _photo;
 }

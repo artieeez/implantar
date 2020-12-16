@@ -12,12 +12,15 @@ class DisplayPictureScreen extends StatefulWidget {
       : super(key: key);
 
   @override
-  _DisplayPictureScreenState createState() => _DisplayPictureScreenState(item);
+  _DisplayPictureScreenState createState() =>
+      _DisplayPictureScreenState(imagePath, item);
 }
 
 class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
+  String imagePath;
   ChecklistItem item;
-  _DisplayPictureScreenState(this.item);
+  _DisplayPictureScreenState(this.imagePath, this.item);
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -30,7 +33,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
         // The image is stored as a file on the device. Use the `Image.file`
         // constructor with the given path to display the image.
         body: Stack(children: [
-          Image.file(File(widget.imagePath)),
+          Image.file(File(imagePath)),
           Positioned(
             bottom: 0,
             child: ButtonBar(

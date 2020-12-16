@@ -90,8 +90,8 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
             final path = join(
               // Store the picture in the temp directory.
               // Find the temp directory using the `path_provider` plugin.
-              (await getTemporaryDirectory()).path,
-              'v_${visita.id.toString()}_${item.id.toString()}.png',
+              (await getApplicationDocumentsDirectory()).path,
+              'v_${visita.id.toString()}_${item.id.toString()}_${item.photoVersion.toString()}.png',
             );
 
             // Attempt to take a picture and log where it's been saved.
@@ -106,7 +106,6 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
                 ),
               ),
             );
-            print(picTaken);
             if (picTaken) {
               Navigator.pop(context, path);
             } else {

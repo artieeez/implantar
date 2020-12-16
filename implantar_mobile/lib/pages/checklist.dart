@@ -191,43 +191,50 @@ class _ChecklistState extends State<Checklist> {
                     var res =
                         await _uploadPhoto(visita.itens[index], _tempPath);
                     if (res.statusCode == 200) {
-                      File(_tempPath).delete();
+                      print(_tempPath);
+                      File f;
+                      f = File(_tempPath);
+                      await f.delete();
+                      print(item.photoVersion.toString());
+                      visita.itens[index].photo = _tempPath;
                     } else {
-                      throw ('Falha ao fazer upload');
+                      /* Em caso de erro, armazena no smartphone */
+                      final directory =
+                          await getApplicationDocumentsDirectory();
+                      String _appPath =
+                          '${directory.path}/v_${visita.id.toString()}_${item.id.toString()}.png';
+                      _moveFile(File(_tempPath), _appPath);
+                      /* Salvar path no sql */
+                      WidgetsFlutterBinding.ensureInitialized();
+                      // Open the database and store the reference.
+                      Database db = await openDatabase(
+                        // Set the path to the database. Note: Using the `join` function from the
+                        // `path` package is best practice to ensure the path is correctly
+                        // constructed for each platform.
+                        join(await getDatabasesPath(), 'implantar.db'),
+                        version: 1,
+                      );
+                      try {
+                        await db.update(
+                            'ck_item', {'id': item.id, 'photo': _appPath},
+                            where: 'id = ?', whereArgs: [item.id]);
+                        print(">>>>>>>>>>>>>>>>");
+                        print("UPDATEEEEEEEEEEES");
+                      } catch (e) {
+                        print(">>>>>>>>>>>>>>>>");
+                        print(e);
+                        print(">>>>>>>>>>>>>>>>");
+                        await db.insert(
+                          'ck_item',
+                          {'id': item.id, 'photo': _appPath},
+                          conflictAlgorithm: ConflictAlgorithm.replace,
+                        );
+                      }
+                      return;
                     }
                   } catch (e) {
-                    /* Em caso de erro, armazena no smartphone */
-                    final directory = await getApplicationDocumentsDirectory();
-                    String _appPath =
-                        '${directory.path}/v_${visita.id.toString()}_${item.id.toString()}.png';
-                    _moveFile(File(_tempPath), _appPath);
-                    /* Salvar path no sql */
-                    WidgetsFlutterBinding.ensureInitialized();
-                    // Open the database and store the reference.
-                    Database db = await openDatabase(
-                      // Set the path to the database. Note: Using the `join` function from the
-                      // `path` package is best practice to ensure the path is correctly
-                      // constructed for each platform.
-                      join(await getDatabasesPath(), 'implantar.db'),
-                      version: 1,
-                    );
-                    try {
-                      await db.update(
-                          'ck_item', {'id': item.id, 'photo': _appPath},
-                          where: 'id = ?', whereArgs: [item.id]);
-                      print(">>>>>>>>>>>>>>>>");
-                      print("UPDATEEEEEEEEEEES");
-                    } catch (e) {
-                      print(">>>>>>>>>>>>>>>>");
-                      print(e);
-                      print(">>>>>>>>>>>>>>>>");
-                      await db.insert(
-                        'ck_item',
-                        {'id': item.id, 'photo': _appPath},
-                        conflictAlgorithm: ConflictAlgorithm.replace,
-                      );
-                    }
-                    return;
+                    print(">>>>>>>>>>>>>>>> ERROOORRR <<<<<<<<<<<<");
+                    print(e);
                   }
                 }
               },
