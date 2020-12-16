@@ -1,6 +1,15 @@
 from django.conf import settings
 from django.db import models
 from datetime import date
+import os
+
+from django.db.models.signals import pre_delete
+from django.dispatch.dispatcher import receiver
+
+def _delete_file(path):
+   """ Deletes file from filesystem. """
+   if os.path.isfile(path):
+       os.remove(path)
 
 # Create your models here.
 class Profile(models.Model):
@@ -52,6 +61,11 @@ class Rede(models.Model):
     def __str__(self):
         return f'{self.nome}'
 
+""" Remove os arquivos da visita ao deletar """
+@receiver(models.signals.pre_delete, sender=Rede)
+def delete_file(sender, instance, *args, **kwargs):
+    if instance.photo:
+        _delete_file(instance.photo.path)
 
 class Ponto(models.Model):
     nome = models.CharField(max_length=64)
@@ -113,6 +127,14 @@ class Visita(models.Model):
                 ({self.data.day}/{self.data.month}/{self.data.year})
                 -> {self.avaliador.profile.display_name}"""
 
+""" Remove os arquivos da visita ao deletar """
+@receiver(models.signals.pre_delete, sender=Visita)
+def delete_file(sender, instance, *args, **kwargs):
+    for row in instance.item_set.all():
+        if row.photo:
+            _delete_file(row.photo.path)
+    if instance.signature:
+        _delete_file(instance.signature.path)
 
 class Item(models.Model):
     class Meta:
