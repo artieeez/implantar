@@ -45,6 +45,7 @@ class _LoadingState extends State<Loading> {
       },
       version: 1,
     );
+    db.close();
     return;
   }
 

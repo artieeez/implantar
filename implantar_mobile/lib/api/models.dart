@@ -1,7 +1,7 @@
 import 'package:implantar_mobile/api/managers.dart';
 import 'package:implantar_mobile/services/user.dart';
 import 'package:http/http.dart' as http;
-import 'package:implantar_mobile/services/config.dart' as co;
+import 'package:implantar_mobile/services/settings.dart' as settings;
 import 'dart:io';
 import 'dart:convert';
 
@@ -82,13 +82,13 @@ class Visita {
     this.rede = rede;
     this.ponto = ponto;
     this.user = user;
-    this.API_BASE = co.API['base'];
-    this.API_ENDPOINT = co.API['visitas'];
+    this.API_BASE = settings.API['base'];
+    this.API_ENDPOINT = settings.API['visitas'];
   }
 
   Future<void> create() async {
     int count = 0; // tentativas de conexão
-    while (count < co.CONN_LIMIT) {
+    while (count < settings.CONN_LIMIT) {
       try {
         http.Response response = await http.post(
           API_BASE + API_ENDPOINT,
@@ -124,7 +124,7 @@ class Visita {
 
   Future<void> update() async {
     int count = 0; // tentativas de conexão
-    while (count < co.CONN_LIMIT) {
+    while (count < settings.CONN_LIMIT) {
       try {
         List<Map> item_set = [];
         for (int i = 0; i < itens.length; i++) {
@@ -176,7 +176,7 @@ class ChecklistItem {
   ChecklistItem.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     text = json['itemBase']['text'];
-    photoVersion = 1;
+    photoVersion = 0;
   }
   set photo(String path) {
     _photo = path;
@@ -184,4 +184,10 @@ class ChecklistItem {
   }
 
   String get photo => _photo;
+
+  String photoFileName() {
+    /* Deve ser usado apenas antes de salvar o endereço em 'photo' */
+    int v = photoVersion + 1;
+    return '${id.toString()}_${v.toString()}.png';
+  }
 }

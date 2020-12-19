@@ -15,7 +15,7 @@ import 'package:signature/signature.dart';
 
 /* SignatureUpload */
 import 'package:http/http.dart' as http;
-import 'package:implantar_mobile/services/config.dart' as co;
+import 'package:implantar_mobile/services/settings.dart' as settings;
 
 class ChecklistSignature extends StatefulWidget {
   final User user;
@@ -67,8 +67,10 @@ class _ChecklistSignatureState extends State<ChecklistSignature> {
   void _uploadSignature(Visita visita, dynamic stream) async {
     var request = http.MultipartRequest(
         'POST',
-        Uri.parse(
-            co.API['base'] + co.API['signature'] + visita.id.toString() + '/'));
+        Uri.parse(settings.API['base'] +
+            settings.API['signature'] +
+            visita.id.toString() +
+            '/'));
     request.files.add(
       http.MultipartFile.fromBytes('signature', stream,
           filename: 'v_${visita.id.toString()}_signature.png'),

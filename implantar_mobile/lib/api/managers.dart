@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:implantar_mobile/services/config.dart' as co;
+import 'package:implantar_mobile/services/settings.dart' as settings;
 import 'dart:io';
 import 'package:implantar_mobile/services/user.dart';
 import 'package:implantar_mobile/api/models.dart';
@@ -15,13 +15,13 @@ class ApiManagers {
   int previous;
 
   ApiManagers() {
-    API_BASE = co.API['base'];
+    API_BASE = settings.API['base'];
   }
 
   Future<void> fetch() async {
     /* Fetch data into <this.results> */
     int count = 0; // tentativas de conexão
-    while (count < co.CONN_LIMIT) {
+    while (count < settings.CONN_LIMIT) {
       try {
         http.Response response = await http.get(
           API_BASE + API_ENDPOINT,
@@ -61,7 +61,7 @@ class ApiManagers {
 
 class RedesObjects extends ApiManagers {
   RedesObjects(User _user) : super() {
-    API_ENDPOINT = co.API['redes'];
+    API_ENDPOINT = settings.API['redes'];
     user = _user;
   }
 
@@ -76,7 +76,7 @@ class RedesObjects extends ApiManagers {
 class PontosObjects extends ApiManagers {
   String redePk;
   PontosObjects(User _user, String redePk) : super() {
-    API_ENDPOINT = co.API['redes'] + redePk + '/pontos/';
+    API_ENDPOINT = settings.API['redes'] + redePk + '/pontos/';
     user = _user;
   }
 

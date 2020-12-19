@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:implantar_mobile/services/config.dart' as co;
+import 'package:implantar_mobile/services/settings.dart' as settings;
 import 'dart:io';
 import 'package:implantar_mobile/utilities/constantes.dart';
 
@@ -65,10 +65,10 @@ class _LoginState extends State<Login> {
     /* Retorna verdadeiro caso consiga logar;
       Salva token em '_token'; */
     int count = 0; // tentativas de conexão
-    while (count < co.CONN_LIMIT) {
+    while (count < settings.CONN_LIMIT) {
       try {
         final http.Response response = await http.post(
-          co.API['base'] + co.API['auth'],
+          settings.API['base'] + settings.API['auth'],
           headers: <String, String>{
             'Content-Type': 'application/json; charset=UTF-8',
           },

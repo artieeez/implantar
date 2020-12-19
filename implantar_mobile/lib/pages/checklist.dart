@@ -14,7 +14,7 @@ import 'package:camera/camera.dart';
 
 /* PhotoUpload */
 import 'package:http/http.dart' as http;
-import 'package:implantar_mobile/services/config.dart' as co;
+import 'package:implantar_mobile/services/settings.dart' as settings;
 
 /* Files */
 import 'package:path_provider/path_provider.dart';
@@ -82,8 +82,10 @@ class _ChecklistState extends State<Checklist> {
   Future<dynamic> _uploadPhoto(ChecklistItem item, String path) async {
     var request = http.MultipartRequest(
         'POST',
-        Uri.parse(
-            co.API['base'] + co.API['item-photo'] + item.id.toString() + '/'));
+        Uri.parse(settings.API['base'] +
+            settings.API['item-photo'] +
+            item.id.toString() +
+            '/'));
     request.files.add(
       http.MultipartFile(
           'photo', File(path).readAsBytes().asStream(), File(path).lengthSync(),
@@ -191,50 +193,46 @@ class _ChecklistState extends State<Checklist> {
                     var res =
                         await _uploadPhoto(visita.itens[index], _tempPath);
                     if (res.statusCode == 200) {
-                      print(_tempPath);
-                      File f;
+                      /* File f;
                       f = File(_tempPath);
-                      await f.delete();
-                      print(item.photoVersion.toString());
-                      visita.itens[index].photo = _tempPath;
+                      await f.delete(); */
+                      item.photo = _tempPath;
                     } else {
-                      /* Em caso de erro, armazena no smartphone */
-                      final directory =
-                          await getApplicationDocumentsDirectory();
-                      String _appPath =
-                          '${directory.path}/v_${visita.id.toString()}_${item.id.toString()}.png';
-                      _moveFile(File(_tempPath), _appPath);
-                      /* Salvar path no sql */
-                      WidgetsFlutterBinding.ensureInitialized();
-                      // Open the database and store the reference.
-                      Database db = await openDatabase(
-                        // Set the path to the database. Note: Using the `join` function from the
-                        // `path` package is best practice to ensure the path is correctly
-                        // constructed for each platform.
-                        join(await getDatabasesPath(), 'implantar.db'),
-                        version: 1,
-                      );
-                      try {
-                        await db.update(
-                            'ck_item', {'id': item.id, 'photo': _appPath},
-                            where: 'id = ?', whereArgs: [item.id]);
-                        print(">>>>>>>>>>>>>>>>");
-                        print("UPDATEEEEEEEEEEES");
-                      } catch (e) {
-                        print(">>>>>>>>>>>>>>>>");
-                        print(e);
-                        print(">>>>>>>>>>>>>>>>");
-                        await db.insert(
-                          'ck_item',
-                          {'id': item.id, 'photo': _appPath},
-                          conflictAlgorithm: ConflictAlgorithm.replace,
-                        );
-                      }
                       return;
                     }
                   } catch (e) {
-                    print(">>>>>>>>>>>>>>>> ERROOORRR <<<<<<<<<<<<");
+                    print(">>>>>>>>>>>>>>>> CONN REFUSED <<<<<<<<<<<<");
                     print(e);
+                    /* Em caso de erro, armazena no smartphone */
+                    final directory = await getApplicationDocumentsDirectory();
+                    String _appPath =
+                        '${directory.path}/v${visita.id}/${item.photoFileName()}.png';
+                    item.photo = _appPath;
+                    _moveFile(File(_tempPath), _appPath);
+                    /* Salvar path no sql */
+                    WidgetsFlutterBinding.ensureInitialized();
+                    // Open the database and store the reference.
+                    Database db = await openDatabase(
+                      // Set the path to the database. Note: Using the `join` function from the
+                      // `path` package is best practice to ensure the path is correctly
+                      // constructed for each platform.
+                      join(await getDatabasesPath(), 'implantar.db'),
+                      version: 1,
+                    );
+                    await db.transaction((txn) async {
+                      await txn.rawInsert(
+                          """INSERT INTO ck_item(id, photo) VALUES(?, ?)
+                              ON CONFLICT (id) DO NOTHING""",
+                          [item.id, item.photo]);
+                    });
+                    List ha = await db.query(
+                      'ck_item',
+                      columns: ['photo'],
+                      where: 'id = ?',
+                      whereArgs: [item.id],
+                    );
+                    print(">>>>>>>>>>>>>>>>>>>");
+                    print(ha[0]['photo']);
                   }
                 }
               },

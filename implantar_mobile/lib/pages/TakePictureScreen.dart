@@ -87,11 +87,29 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
 
             // Construct the path where the image should be saved using the
             // pattern package.
+
+            String _fileName =
+                '${item.id.toString()}_${item.photoVersion.toString()}.png';
+            String _path = join(
+              // Store the picture in the temp directory.
+              // Find the temp directory using the `path_provider` plugin.
+              (await getApplicationDocumentsDirectory()).path,
+              'v_${visita.id.toString()}/',
+            );
+            /* Cria pasta */
+            if (!await Directory(_path).exists()) {
+              new Directory(_path).create(recursive: true);
+            }
+            /* Caso arquivo exista, acrescente nova versao */
+            if (await File(_path + _fileName).exists()) {
+              int v = item.photoVersion + 1;
+              _fileName = '${item.id.toString()}_${v.toString()}.png';
+            }
             final path = join(
               // Store the picture in the temp directory.
               // Find the temp directory using the `path_provider` plugin.
               (await getApplicationDocumentsDirectory()).path,
-              'v_${visita.id.toString()}_${item.id.toString()}_${item.photoVersion.toString()}.png',
+              _path + _fileName,
             );
 
             // Attempt to take a picture and log where it's been saved.
