@@ -7,6 +7,9 @@ import datetime
 from django.utils import timezone
 import pytz
 
+# DbVersion
+from db_version import utils as db_version
+
 
 class ProfileSerializer(serializers.ModelSerializer):
 

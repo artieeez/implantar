@@ -1,40 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:implantar_mobile/services/user.dart';
 import 'package:implantar_mobile/utilities/constantes.dart';
 import 'package:implantar_mobile/pages/drawer.dart';
 import 'package:implantar_mobile/pages/checklist.dart';
-import 'package:implantar_mobile/api/managers.dart';
 import 'package:implantar_mobile/api/models.dart';
+
+/* Services */
+import 'package:implantar_mobile/services/session.dart';
 
 /* Screen Orientation */
 import 'package:flutter/services.dart';
 
 class PontoList extends StatefulWidget {
-  final User user;
+  final Session session;
   final Rede rede;
-  PontoList({Key key, @required this.user, @required this.rede})
+  PontoList({Key key, @required this.session, @required this.rede})
       : super(key: key);
 
   @override
-  _PontoListState createState() => _PontoListState(user, rede);
+  _PontoListState createState() => _PontoListState(session, rede);
 }
 
 class _PontoListState extends State<PontoList> {
-  User user;
+  Session session;
   Rede rede;
-  _PontoListState(this.user, this.rede);
+  _PontoListState(this.session, this.rede);
 
-  Map data = {};
-  PontosObjects pontos;
-  List<ApiObject> results = [];
-
-  void getList() async {
-    rede.initPontos(user);
-    List<ApiObject> tempListawait = await rede.pontos.all();
-    setState(() {
-      results = tempListawait;
-    });
-  }
+  List<Ponto> results = [];
 
   @override
   void initState() {
@@ -42,7 +33,7 @@ class _PontoListState extends State<PontoList> {
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
     ]);
-    getList();
+    results = rede.pontos;
   }
 
   @override
@@ -75,14 +66,15 @@ class _PontoListState extends State<PontoList> {
         });
   }
 
-  Widget _buildRow(ApiObject ponto) {
+  Widget _buildRow(Ponto ponto) {
     return ListTile(
       title: Text(
         ponto.nome,
       ),
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) => Checklist(user: user, rede: rede, ponto: ponto),
+          builder: (context) =>
+              Checklist(session: session, rede: rede, ponto: ponto),
         ),
       ),
       leading: CircleAvatar(

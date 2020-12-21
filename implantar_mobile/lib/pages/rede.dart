@@ -1,37 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:implantar_mobile/services/user.dart';
 import 'package:implantar_mobile/utilities/constantes.dart';
 import 'package:implantar_mobile/pages/pontos.dart';
 import 'package:implantar_mobile/pages/drawer.dart';
 import 'package:implantar_mobile/api/models.dart';
-import 'package:implantar_mobile/api/managers.dart';
+
+/* Services */
+import 'package:implantar_mobile/services/session.dart';
 
 /* Screen Orientation */
 import 'package:flutter/services.dart';
 
 class RedeList extends StatefulWidget {
-  final User user;
-  RedeList({Key key, @required this.user}) : super(key: key);
+  final Session session;
+  RedeList({Key key, @required this.session}) : super(key: key);
 
   @override
-  _RedeListState createState() => _RedeListState(user);
+  _RedeListState createState() => _RedeListState(session);
 }
 
 class _RedeListState extends State<RedeList> {
-  User user;
-  _RedeListState(this.user);
+  Session session;
+  _RedeListState(this.session);
 
   Map data = {};
-  RedesObjects redes;
-  List<ApiObject> results = [];
-
-  void _getList() async {
-    redes = RedesObjects(user);
-    List<ApiObject> tempListawait = await redes.all();
-    setState(() {
-      results = tempListawait;
-    });
-  }
+  List<Rede> results = [];
 
   @override
   void initState() {
@@ -39,7 +31,7 @@ class _RedeListState extends State<RedeList> {
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
     ]);
-    _getList();
+    results = session.dataSync.redes;
   }
 
   @override
@@ -82,7 +74,7 @@ class _RedeListState extends State<RedeList> {
       ),
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) => PontoList(user: user, rede: rede),
+          builder: (context) => PontoList(session: session, rede: rede),
         ),
       ),
       leading: CircleAvatar(

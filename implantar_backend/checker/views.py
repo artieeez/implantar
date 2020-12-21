@@ -19,6 +19,9 @@ from rest_framework import permissions, mixins
 from django.conf import settings
 from drf_trashbin import trash_mixins
 
+# DbVersion
+from db_version import utils as db_version
+
 # File upload
 from rest_framework.parsers import MultiPartParser, FormParser
 
@@ -133,6 +136,12 @@ class RedeViewSet(mixins.CreateModelMixin,
     queryset = Rede.objects.filter(in_trash=False)
     serializer_class = RedeSerializer
 
+    def finalize_response(self, request, response, *args, **kwargs):
+        xresponse = super().finalize_response(request, response, *args, **kwargs)
+        if request.method not in ['GET', 'HEAD', 'OPTIONS'] and (response.status_code >= 200 and response.status_code <=299):
+            db_version.upgrade_version()
+        return xresponse
+
 
 class TrashRedeViewSet(mixins.RetrieveModelMixin,
                        mixins.ListModelMixin,
@@ -141,6 +150,12 @@ class TrashRedeViewSet(mixins.RetrieveModelMixin,
                        viewsets.GenericViewSet):
     queryset = Rede.objects.filter(in_trash=True)
     serializer_class = TrashRedeSerializer
+
+    def finalize_response(self, request, response, *args, **kwargs):
+        xresponse = super().finalize_response(request, response, *args, **kwargs)
+        if request.method not in ['GET', 'HEAD', 'OPTIONS'] and (response.status_code >= 200 and response.status_code <=299):
+            db_version.upgrade_version()
+        return xresponse
 
 
 class SignatureUpload(APIView):
@@ -254,6 +269,12 @@ class PontoViewSet(mixins.CreateModelMixin,
     queryset = Ponto.objects.filter(in_trash=False)
     serializer_class = PontoSerializer
 
+    def finalize_response(self, request, response, *args, **kwargs):
+        xresponse = super().finalize_response(request, response, *args, **kwargs)
+        if request.method not in ['GET', 'HEAD', 'OPTIONS'] and (response.status_code >= 200 and response.status_code <=299):
+            db_version.upgrade_version()
+        return xresponse
+
         
 class TrashPontoViewSet(mixins.RetrieveModelMixin,
                         mixins.ListModelMixin,
@@ -262,6 +283,12 @@ class TrashPontoViewSet(mixins.RetrieveModelMixin,
                         viewsets.GenericViewSet):
     queryset = Ponto.objects.filter(in_trash=True)
     serializer_class = PontoSerializer
+
+    def finalize_response(self, request, response, *args, **kwargs):
+        xresponse = super().finalize_response(request, response, *args, **kwargs)
+        if request.method not in ['GET', 'HEAD', 'OPTIONS'] and (response.status_code >= 200 and response.status_code <=299):
+            db_version.upgrade_version()
+        return xresponse
 
 
 class ItemBaseViewSet(mixins.CreateModelMixin,
@@ -272,6 +299,12 @@ class ItemBaseViewSet(mixins.CreateModelMixin,
                   viewsets.GenericViewSet):
     queryset = ItemBase.objects.filter(in_trash=False)
     serializer_class = ItemBaseSerializer
+
+    def finalize_response(self, request, response, *args, **kwargs):
+        xresponse = super().finalize_response(request, response, *args, **kwargs)
+        if request.method not in ['GET', 'HEAD', 'OPTIONS'] and (response.status_code >= 200 and response.status_code <=299):
+            db_version.upgrade_version()
+        return xresponse
 
     @action(detail=False, methods=['get'])
     def active(self, request):
@@ -296,3 +329,9 @@ class TrashItemBaseViewSet(mixins.RetrieveModelMixin,
                        viewsets.GenericViewSet):
     queryset = ItemBase.objects.filter(in_trash=True)
     serializer_class = ItemBaseSerializer
+
+    def finalize_response(self, request, response, *args, **kwargs):
+        xresponse = super().finalize_response(request, response, *args, **kwargs)
+        if request.method not in ['GET', 'HEAD', 'OPTIONS'] and (response.status_code >= 200 and response.status_code <=299):
+            db_version.upgrade_version()
+        return xresponse

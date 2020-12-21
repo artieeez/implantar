@@ -36,6 +36,7 @@ ALLOWED_HOSTS = [
 
 INSTALLED_APPS = [
     'checker',
+    'db_version',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

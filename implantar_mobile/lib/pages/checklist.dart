@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:implantar_mobile/pages/TakePictureScreen.dart';
-import 'package:implantar_mobile/services/user.dart';
 import 'package:implantar_mobile/utilities/constantes.dart';
 import 'package:implantar_mobile/api/models.dart';
 import 'package:implantar_mobile/pages/checklist_signature.dart';
+
+/* Services */
+import 'package:implantar_mobile/services/session.dart';
 
 /* orientation */
 import 'package:flutter/services.dart';
@@ -36,35 +38,38 @@ Future<File> _moveFile(File sourceFile, String newPath) async {
 }
 
 class Checklist extends StatefulWidget {
-  final User user;
+  final Session session;
   final Rede rede;
   final Ponto ponto;
   Checklist(
-      {Key key, @required this.user, @required this.rede, @required this.ponto})
+      {Key key,
+      @required this.session,
+      @required this.rede,
+      @required this.ponto})
       : super(key: key);
 
   @override
-  _ChecklistState createState() => _ChecklistState(user, rede, ponto);
+  _ChecklistState createState() => _ChecklistState(session, rede, ponto);
 }
 
 class _ChecklistState extends State<Checklist> {
+  Session session;
   static const double kBorderRadius = 10;
   static const double kButtonHeight = 40;
-  User user;
   Rede rede;
   Ponto ponto;
   Visita visita;
-  _ChecklistState(this.user, this.rede, this.ponto);
+  _ChecklistState(this.session, this.rede, this.ponto);
 
   void _newChecklist() async {
-    visita = Visita(rede, ponto, user);
+    visita = Visita(rede, ponto, session.user);
     await visita.create();
     setState(() {
-      print(visita.itens[0].text);
+      print(visita.itens[0].itemBase.text);
     });
   }
 
-  Future<String> _takePic(ChecklistItem item) async {
+  Future<String> _takePic(Item item) async {
     WidgetsFlutterBinding.ensureInitialized();
     // Obtain a list of the available cameras on the device.
     final cameras = await availableCameras();
@@ -79,7 +84,7 @@ class _ChecklistState extends State<Checklist> {
     return path;
   }
 
-  Future<dynamic> _uploadPhoto(ChecklistItem item, String path) async {
+  Future<dynamic> _uploadPhoto(Item item, String path) async {
     var request = http.MultipartRequest(
         'POST',
         Uri.parse(settings.API['base'] +
@@ -91,7 +96,7 @@ class _ChecklistState extends State<Checklist> {
           'photo', File(path).readAsBytes().asStream(), File(path).lengthSync(),
           filename: path.split("/").last),
     );
-    request.headers['Authorization'] = 'token ' + user.token;
+    request.headers['Authorization'] = 'token ' + session.user.token;
     var res = await request.send();
     return res;
   }
@@ -130,7 +135,7 @@ class _ChecklistState extends State<Checklist> {
           Expanded(
             flex: 10,
             child: Text(
-              visita.itens[index].text,
+              visita.itens[index].itemBase.text,
               style: TextStyle(
                 fontSize: 20.0,
               ),
@@ -184,7 +189,7 @@ class _ChecklistState extends State<Checklist> {
             height: kButtonHeight,
             child: TextButton(
               onPressed: () async {
-                ChecklistItem item = visita.itens[index];
+                Item item = visita.itens[index];
                 /* Retorna caminho temporário da imagem. */
                 final _tempPath = await _takePic(item);
                 /* Tenta fazer o upload da imagem/ armazenar no smartphone */
@@ -324,7 +329,7 @@ class _ChecklistState extends State<Checklist> {
                     dynamic temp = await Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => ChecklistSignature(
-                            user: user,
+                            user: session.user,
                             rede: rede,
                             ponto: ponto,
                             visita: visita),

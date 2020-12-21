@@ -11,7 +11,7 @@ def _delete_file(path):
    if os.path.isfile(path):
        os.remove(path)
 
-# Create your models here.
+
 class Profile(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,

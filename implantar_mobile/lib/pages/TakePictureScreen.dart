@@ -11,7 +11,7 @@ import 'dart:io';
 class TakePictureScreen extends StatefulWidget {
   final CameraDescription camera;
   final Visita visita;
-  final ChecklistItem item;
+  final Item item;
 
   const TakePictureScreen({
     Key key,
@@ -28,7 +28,7 @@ class TakePictureScreen extends StatefulWidget {
 class _TakePictureScreenState extends State<TakePictureScreen> {
   CameraController _controller;
   Visita visita;
-  ChecklistItem item;
+  Item item;
   Future<void> _initializeControllerFuture;
 
   _TakePictureScreenState(this.visita, this.item);

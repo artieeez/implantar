@@ -28,11 +28,11 @@ class Session {
 
   Session(this.context);
 
-  void init() async {
+  Future<void> init() async {
     db = await _initDatabase();
     hasConnection = await _hasConnection();
     user = await _getUser();
-    dataSync = await _getDataSync();
+    /* dataSync = await _getDataSync(); */
   }
 
   void syncInit() async {}
@@ -75,51 +75,55 @@ class Session {
             token TEXT)""",
         );
         await db.execute(
-          """CREATE TABLE dbVersion(
+          """CREATE TABLE clientDataVersion(
             id INTEGER PRIMARY KEY,
-            version INTEGER)""",
+            version INTEGER NOT NULL)""",
         );
         await db.execute(
           """CREATE TABLE rede(
             id INTEGER PRIMARY KEY,
-            nome TEXT,
+            nome TEXT NOT NULL,
             photo TEXT)""",
         );
         await db.execute(
           """CREATE TABLE ponto(
             id INTEGER PRIMARY KEY,
-            nome TEXT,
-            rede_id INTEGER,
+            nome TEXT NOT NULL,
+            rede_id INTEGER NOT NULL,
             FOREIGN KEY(rede_id) REFERENCES rede(id))""",
+        );
+        await db.execute(
+          """CREATE TABLE visita(
+            id INTEGER PRIMARY KEY,
+            concluded INTEGER DEFAULT 0,
+            sent INTEGER DEFAULT 0,
+            inicio TEXT NOT NULL,
+            termino TEXT,
+            signature TEXT,
+            ponto_id INTEGER NOT NULL,
+            FOREIGN KEY(ponto_id) REFERENCES ponto(id))""",
         );
         await db.execute(
           """CREATE TABLE item(
             id INTEGER PRIMARY KEY,
             photo TEXT,
-            conformidade TEXT,
-            visita_id INTEGER,
-            itemBase_id INTEGER,
+            conformidade TEXT DEFAULT 'NO',
+            visita_id INTEGER NOT NULL,
+            itemBase_id INTEGER NOT NULL,
             FOREIGN KEY(visita_id) REFERENCES visita(id),
             FOREIGN KEY(itemBase_id) REFERENCES itemBase(id))""",
-        );
-        await db.execute(
-          """CREATE TABLE ponto_item(
-            ponto_id INTEGER,
-            item_id INTEGER,
-            FOREIGN KEY(ponto_id) REFERENCES ponto(id),
-            FOREIGN KEY(item_id) REFERENCES item(id))""",
         );
         await db.execute(
           """CREATE TABLE categoria(
             id INTEGER PRIMARY KEY,
             id_arb INTEGER,
-            nome TEXT)""",
+            nome TEXT NOT NULL)""",
         );
         await db.execute(
           """CREATE TABLE itemBase(
             id INTEGER PRIMARY KEY,
             id_arb INTEGER,
-            text TEXT,
+            text TEXT NOT NULL,
             categoria_id INTEGER,
             FOREIGN KEY(categoria_id) REFERENCES categoria(id))""",
         );

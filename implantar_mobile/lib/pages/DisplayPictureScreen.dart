@@ -5,7 +5,7 @@ import 'package:implantar_mobile/api/models.dart';
 
 class DisplayPictureScreen extends StatefulWidget {
   final String imagePath;
-  final ChecklistItem item;
+  final Item item;
 
   const DisplayPictureScreen(
       {Key key, @required this.imagePath, @required this.item})
@@ -18,7 +18,7 @@ class DisplayPictureScreen extends StatefulWidget {
 
 class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
   String imagePath;
-  ChecklistItem item;
+  Item item;
   _DisplayPictureScreenState(this.imagePath, this.item);
 
   @override

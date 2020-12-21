@@ -1,30 +1,71 @@
+import 'package:implantar_mobile/api/managers.dart';
 import 'package:implantar_mobile/services/user.dart';
 import 'package:http/http.dart' as http;
 import 'package:implantar_mobile/services/settings.dart' as settings;
 import 'dart:io';
 import 'dart:convert';
 
-class Rede {
+class ApiObject {
+  String url;
   int id;
   String nome;
   String photo;
-  List<Ponto> pontos;
+  String t_created;
+  String t_modified;
+
+  ApiManagers objects;
+}
+
+class Rede extends ApiObject {
+  ApiManagers pontos;
+
+  void initPontos(User _user) {
+    pontos = PontosObjects(_user, id.toString());
+  }
+
+  Rede(user) {
+    objects = RedesObjects(user);
+  }
 
   Rede.fromJson(Map<String, dynamic> json) {
+    url = json['url'];
     id = json['id'];
     nome = json['nome'];
     photo = json['photo'];
+    t_created = json['t_created'];
+    t_modified = json['t_modified'];
   }
+
+  Map<String, dynamic> toJson() => {
+        'url': url,
+        'id': id,
+        'nome': nome,
+        'photo': photo,
+        't_created': t_created,
+        't_modified': t_modified,
+      };
 }
 
-class Ponto {
-  int id;
-  String nome;
+class Ponto extends ApiObject {
+  Ponto(User user, String redePk) {
+    objects = PontosObjects(user, redePk);
+  }
 
   Ponto.fromJson(Map<String, dynamic> json) {
+    url = json['url'];
     id = json['id'];
     nome = json['nome'];
+    t_created = json['t_created'];
+    t_modified = json['t_modified'];
   }
+
+  Map<String, dynamic> toJson() => {
+        'url': url,
+        'id': id,
+        'nome': nome,
+        't_created': t_created,
+        't_modified': t_modified,
+      };
 }
 
 class Visita {
@@ -131,7 +172,6 @@ class ItemBase {
 
   ItemBase.fromJson(Map<String, dynamic> json) {
     id = json['id'];
-    id_arb = json['id_arb'];
     text = json['text'];
   }
 }

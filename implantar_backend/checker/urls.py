@@ -1,6 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from checker import views
+from db_version import views as db_version
 
 # Create a router and register our viewsets with it.
 router = DefaultRouter()
@@ -26,4 +27,5 @@ urlpatterns = [
     path('avaliadores/<int:pk>/password_reset', views.AvaliadorViewSet.as_view({'put': 'password'})),
     path("item-photo/<int:pk>/", views.ItemPhotoUpload.as_view(), name="rest_item_photo_upload"),
     path("signature/<int:pk>/", views.SignatureUpload.as_view(), name="rest_signature_upload"),
+    path("get_version/", db_version.DbVersionView.as_view()),
 ]
