@@ -19,7 +19,9 @@ class _LoadingState extends State<Loading> {
     session = Session(this.context);
     await session.init();
     Navigator.of(this.context).push(MaterialPageRoute(
-      builder: (context) => RedeList(session: session),
+      builder: (context) => RedeList(
+        session: session,
+      ),
     ));
   }
 
@@ -29,7 +31,6 @@ class _LoadingState extends State<Loading> {
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
     ]);
-    Permission.storage.request();
     _syncInit();
   }
 

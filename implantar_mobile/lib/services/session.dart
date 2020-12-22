@@ -29,10 +29,12 @@ class Session {
   Session(this.context);
 
   Future<void> init() async {
+    await Permission.storage.request();
+
     db = await _initDatabase();
     hasConnection = await _hasConnection();
     user = await _getUser();
-    /* dataSync = await _getDataSync(); */
+    dataSync = await _getDataSync();
   }
 
   void syncInit() async {}
@@ -58,7 +60,6 @@ class Session {
   }
 
   Future<Database> _initDatabase() async {
-    await Permission.storage.request();
     // TODO permission ? throw error
     WidgetsFlutterBinding.ensureInitialized();
     // Open the database and store the reference.
@@ -67,32 +68,32 @@ class Session {
       // `path` package is best practice to ensure the path is correctly
       // constructed for each platform.
       join(await getDatabasesPath(), 'session.db'),
-      onCreate: (db, version) async {
-        await db.execute(
+      onCreate: (_db, version) async {
+        await _db.execute(
           """CREATE TABLE user(
             id AUTO_INCREMENT INTEGER PRIMARY KEY,
             nome TEXT,
             token TEXT)""",
         );
-        await db.execute(
+        await _db.execute(
           """CREATE TABLE clientDataVersion(
             id INTEGER PRIMARY KEY,
             version INTEGER NOT NULL)""",
         );
-        await db.execute(
+        await _db.execute(
           """CREATE TABLE rede(
             id INTEGER PRIMARY KEY,
             nome TEXT NOT NULL,
             photo TEXT)""",
         );
-        await db.execute(
+        await _db.execute(
           """CREATE TABLE ponto(
             id INTEGER PRIMARY KEY,
             nome TEXT NOT NULL,
             rede_id INTEGER NOT NULL,
             FOREIGN KEY(rede_id) REFERENCES rede(id))""",
         );
-        await db.execute(
+        await _db.execute(
           """CREATE TABLE visita(
             id INTEGER PRIMARY KEY,
             concluded INTEGER DEFAULT 0,
@@ -103,7 +104,7 @@ class Session {
             ponto_id INTEGER NOT NULL,
             FOREIGN KEY(ponto_id) REFERENCES ponto(id))""",
         );
-        await db.execute(
+        await _db.execute(
           """CREATE TABLE item(
             id INTEGER PRIMARY KEY,
             photo TEXT,
@@ -113,21 +114,23 @@ class Session {
             FOREIGN KEY(visita_id) REFERENCES visita(id),
             FOREIGN KEY(itemBase_id) REFERENCES itemBase(id))""",
         );
-        await db.execute(
+        await _db.execute(
           """CREATE TABLE categoria(
             id INTEGER PRIMARY KEY,
             id_arb INTEGER,
             nome TEXT NOT NULL)""",
         );
-        await db.execute(
+        await _db.execute(
           """CREATE TABLE itemBase(
             id INTEGER PRIMARY KEY,
             id_arb INTEGER,
             text TEXT NOT NULL,
             categoria_id INTEGER,
+            active INTEGER,
             FOREIGN KEY(categoria_id) REFERENCES categoria(id))""",
         );
-        await db.rawInsert('INSERT INTO dbVersion(id, version) VALUES(1, 0)');
+        await _db.rawInsert(
+            'INSERT INTO clientDataVersion(id, version) VALUES(1, 0)');
         return;
       },
       version: 1,

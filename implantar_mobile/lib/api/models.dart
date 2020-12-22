@@ -14,6 +14,7 @@ class Rede {
     id = json['id'];
     nome = json['nome'];
     photo = json['photo'];
+    pontos = [];
   }
 }
 
@@ -133,6 +134,11 @@ class ItemBase {
     id = json['id'];
     id_arb = json['id_arb'];
     text = json['text'];
+    if (json['active'] is int) {
+      active = json['active'] == 1 ? true : false;
+    } else {
+      active = json['active'];
+    }
   }
 }
 

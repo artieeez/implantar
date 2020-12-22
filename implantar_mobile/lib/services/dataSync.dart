@@ -26,19 +26,20 @@ class DataSync {
   bool isReady;
 
   bool unsafeData;
-  List<Rede> redes;
-  List<ItemBase> itemBases;
+  List<Rede> redes = [];
+  List<ItemBase> itemBases = [];
 
   DataSync(this.context, this.hasConnection, this.db, this.user);
 
   Future<void> init() async {
     clientDataVersion = await _getClientDataVersion();
+    clientDataVersion = 0;
     if (hasConnection) {
       try {
         serverDataVersion = await _getServerDataVersion();
       } catch (e) {
         /* Load localData into memory */
-        _loadClientData();
+        await _loadClientData();
         print(e);
         isUpdated = false;
         isReady = true;
@@ -47,18 +48,18 @@ class DataSync {
       isUpdated = (clientDataVersion == serverDataVersion);
       if (isUpdated) {
         /* Load localData into memory */
-        _loadClientData();
+        await _loadClientData();
         isUpdated = true;
         isReady = true;
         return;
       } else {
         try {
           /* Fetch data from backend */
-          _fetchServerData();
+          await _fetchServerData();
         } catch (e) {
           print(e);
           /* Load localData into memory */
-          _loadClientData();
+          await _loadClientData();
           isUpdated = false;
           isReady = true;
           return;
@@ -72,7 +73,7 @@ class DataSync {
       if (clientDataVersion != 0) {
         /*  Offline Mode
           Load localData into memory */
-        _loadClientData();
+        await _loadClientData();
         isUpdated = false;
         isReady = true;
         return;
@@ -91,7 +92,7 @@ class DataSync {
 
   Future<int> _getServerDataVersion() async {
     // TODO getIsUpdated backend
-    int count;
+    int count = 0;
     int _serverDataVersion;
     while (count < settings.CONN_LIMIT) {
       try {
@@ -102,7 +103,7 @@ class DataSync {
           },
         );
         if (response.statusCode == 200) {
-          _serverDataVersion = jsonDecode(response.body)['dbVersion'];
+          _serverDataVersion = jsonDecode(response.body)['version'];
           return _serverDataVersion;
         } else {
           throw ("Sem sucesso em obter versão do backend");
@@ -143,7 +144,76 @@ class DataSync {
   }
 
   Future<void> _fetchServerData() async {
+    await db.rawUpdate(
+        'UPDATE clientDataVersion SET version = ? WHERE id = 1', [0]);
+    await db.delete(
+      'rede',
+    );
+    await db.delete(
+      'ponto',
+    );
+    await db.delete(
+      'itemBase',
+    );
+
     /* Fetch Redes */
+    List<dynamic> redeList = await _fetchRedes();
+    for (int i = 0; i < redeList.length; i++) {
+      Rede _rowRede = Rede.fromJson(redeList[i]);
+
+      for (int j = 0; j < redeList[i]['pontos'].length; j++) {
+        Ponto _rowPonto = Ponto.fromJson(redeList[i]['pontos'][j]);
+        _rowRede.pontos.add(_rowPonto);
+        await db
+            .rawInsert('INSERT INTO ponto(id, nome, rede_id) VALUES(?, ?, ?)', [
+          _rowPonto.id,
+          _rowPonto.nome,
+          _rowRede.id,
+        ]);
+      }
+      /* Cache image */
+      String url = _rowRede.photo; // <-- 1
+      http.Response response = await http.get(url); // <--2
+      Directory documentDirectory = await getApplicationDocumentsDirectory();
+      String firstPath = documentDirectory.path + "/redes/${_rowRede.id}";
+      String filePathAndName =
+          documentDirectory.path + '/redes/${_rowRede.id}/photo.png';
+      await Directory(firstPath).create(recursive: true); // <-- 1
+      File file2 = new File(filePathAndName); // <-- 2
+      file2.writeAsBytesSync(response.bodyBytes); // <-- 3
+      _rowRede.photo = filePathAndName;
+      redes.add(_rowRede);
+      await db.rawInsert('INSERT INTO rede(id, nome, photo) VALUES(?, ?, ?)', [
+        _rowRede.id,
+        _rowRede.nome,
+        _rowRede.photo,
+      ]);
+      /* print(_rowRede.photo);
+      await Navigator.of(this.context).push(MaterialPageRoute(
+        builder: (context) => Image.file(File(_rowRede.photo)),
+      ));
+      sleep(const Duration(seconds: 1)); */
+    }
+
+    /* Fetch itemBase */
+    List<dynamic> itemBaseList = await _fetchItemBase();
+    for (int i = 0; i < itemBaseList.length; i++) {
+      ItemBase _rowItemBase = ItemBase.fromJson(itemBaseList[i]);
+      itemBases.add(_rowItemBase);
+      await db
+          .rawInsert('INSERT INTO itemBase(id, text, active) VALUES(?, ?, ?)', [
+        _rowItemBase.id,
+        _rowItemBase.text,
+        _rowItemBase.active ? 1 : 0,
+      ]);
+    }
+
+    await db.rawUpdate('UPDATE clientDataVersion SET version = ? WHERE id = 1',
+        [serverDataVersion]);
+    return;
+  }
+
+  Future<List<dynamic>> _fetchRedes() async {
     int count = 0; // tentativas de conexão
     while (count < settings.CONN_LIMIT) {
       try {
@@ -152,30 +222,9 @@ class DataSync {
           headers: {'Authorization': 'token ' + user.token},
         );
         if (response.statusCode == 200) {
-          Map data = jsonDecode(utf8.decode(response.bodyBytes));
-          for (int i = 0; i < data['results'].length; i++) {
-            Rede _rowRede = Rede.fromJson(data['results'][i]);
-            for (int j = 0; j < data['results'][i]['pontos'].length; j++) {
-              Ponto _rowPonto = Ponto.fromJson(data['results'][i]['pontos'][j]);
-              _rowRede.pontos.add(_rowPonto);
-            }
-
-            /* Cache image */
-            var url = _rowRede.photo; // <-- 1
-            var response = await http.get(url); // <--2
-            var documentDirectory = await getApplicationDocumentsDirectory();
-            var firstPath = documentDirectory.path + "/redes/v${_rowRede.id}";
-            var filePathAndName =
-                documentDirectory.path + '/redes/v${_rowRede.id}/photo.png';
-            await Directory(firstPath).create(recursive: true); // <-- 1
-            File file2 = new File(filePathAndName); // <-- 2
-            file2.writeAsBytesSync(response.bodyBytes); // <-- 3
-            _rowRede.photo = filePathAndName;
-            redes.add(_rowRede);
-          }
-          return;
-        } else {
-          return;
+          List<dynamic> _data =
+              jsonDecode(utf8.decode(response.bodyBytes))['results'];
+          return _data;
         }
       } catch (e) {
         print(e);
@@ -183,5 +232,28 @@ class DataSync {
         sleep(const Duration(seconds: 5));
       }
     }
+    throw ('Err. Failed to fetch redes.');
+  }
+
+  Future<List<dynamic>> _fetchItemBase() async {
+    int count = 0; // tentativas de conexão
+    while (count < settings.CONN_LIMIT) {
+      try {
+        http.Response response = await http.get(
+          settings.API['base'] + settings.API['itemBase'],
+          headers: {'Authorization': 'token ' + user.token},
+        );
+        if (response.statusCode == 200) {
+          List<dynamic> _data =
+              jsonDecode(utf8.decode(response.bodyBytes))['results'];
+          return _data;
+        }
+      } catch (e) {
+        print(e);
+        count++;
+        sleep(const Duration(seconds: 5));
+      }
+    }
+    throw ('Err. Failed to fetch itemBases.');
   }
 }

@@ -9,7 +9,7 @@ class ApiManagers {
   User user;
   String API_BASE;
   String API_ENDPOINT;
-  List<ApiObject> results = [];
+  /* List<ApiObject> results = []; */
   int count;
   int next;
   int previous;
@@ -46,10 +46,10 @@ class ApiManagers {
     return;
   }
 
-  Future<List<ApiObject>> all() async {
+  /* Future<List<ApiObject>> all() async {
     await fetch();
     return results;
-  }
+  } */
 
   void serializer(List<dynamic> data) {
     /* 
@@ -65,12 +65,12 @@ class RedesObjects extends ApiManagers {
     user = _user;
   }
 
-  @override
+  /* @override
   void serializer(List<dynamic> data) {
     for (int i = 0; i < data.length; i++) {
       results.add(Rede.fromJson(data[i]));
     }
-  }
+  } */
 }
 
 class PontosObjects extends ApiManagers {
@@ -80,10 +80,10 @@ class PontosObjects extends ApiManagers {
     user = _user;
   }
 
-  @override
+  /* @override
   void serializer(List<dynamic> data) {
     for (int i = 0; i < data.length; i++) {
       results.add(Ponto.fromJson(data[i]));
     }
-  }
+  } */
 }

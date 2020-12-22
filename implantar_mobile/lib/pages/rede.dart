@@ -3,6 +3,7 @@ import 'package:implantar_mobile/utilities/constantes.dart';
 import 'package:implantar_mobile/pages/pontos.dart';
 import 'package:implantar_mobile/pages/drawer.dart';
 import 'package:implantar_mobile/api/models.dart';
+import 'dart:io';
 
 /* Services */
 import 'package:implantar_mobile/services/session.dart';
@@ -22,8 +23,7 @@ class _RedeListState extends State<RedeList> {
   Session session;
   _RedeListState(this.session);
 
-  Map data = {};
-  List<Rede> results = [];
+  List<Rede> results;
 
   @override
   void initState() {
@@ -79,7 +79,7 @@ class _RedeListState extends State<RedeList> {
       ),
       leading: CircleAvatar(
         backgroundImage: rede.photo != null
-            ? NetworkImage(rede.photo)
+            ? AssetImage(rede.photo)
             : NetworkImage('https://via.placeholder.com/150'),
       ),
     );
