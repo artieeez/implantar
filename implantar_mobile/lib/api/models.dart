@@ -1,3 +1,6 @@
+import 'dart:ffi';
+import 'dart:typed_data';
+
 import 'package:implantar_mobile/services/user.dart';
 import 'package:http/http.dart' as http;
 import 'package:implantar_mobile/services/settings.dart' as settings;
@@ -8,6 +11,7 @@ class Rede {
   int id;
   String nome;
   String photo;
+  Uint8List photoBytes;
   List<Ponto> pontos;
 
   Rede.fromJson(Map<String, dynamic> json) {

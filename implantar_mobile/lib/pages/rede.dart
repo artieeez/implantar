@@ -1,3 +1,6 @@
+import 'dart:ffi';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:implantar_mobile/utilities/constantes.dart';
 import 'package:implantar_mobile/pages/pontos.dart';
@@ -24,6 +27,16 @@ class _RedeListState extends State<RedeList> {
   _RedeListState(this.session);
 
   List<Rede> results;
+
+  Widget _returnRedeIcon(Uint8List byteList) {
+    Widget _avatar;
+    _avatar = CircleAvatar(
+      backgroundImage: byteList != null
+          ? MemoryImage(byteList)
+          : NetworkImage('https://via.placeholder.com/150'),
+    );
+    return _avatar;
+  }
 
   @override
   void initState() {
@@ -77,11 +90,7 @@ class _RedeListState extends State<RedeList> {
           builder: (context) => PontoList(session: session, rede: rede),
         ),
       ),
-      leading: CircleAvatar(
-        backgroundImage: rede.photo != null
-            ? AssetImage(rede.photo)
-            : NetworkImage('https://via.placeholder.com/150'),
-      ),
+      leading: _returnRedeIcon(rede.photoBytes),
     );
   }
 }

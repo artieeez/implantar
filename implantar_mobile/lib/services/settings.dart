@@ -13,3 +13,5 @@ const Map<String, String> API = {
   'signature': 'api/signature/',
   'itemBase': 'api/item_base/active/',
 };
+
+const bool CACHE = true;

@@ -23,7 +23,8 @@ class DataSync {
   static int clientDataVersion;
   static int serverDataVersion;
   bool isUpdated;
-  bool isReady;
+  bool isReady = false;
+  bool useCache = settings.CACHE;
 
   bool unsafeData;
   List<Rede> redes = [];
@@ -33,41 +34,26 @@ class DataSync {
 
   Future<void> init() async {
     clientDataVersion = await _getClientDataVersion();
-    clientDataVersion = 0;
     if (hasConnection) {
       try {
         serverDataVersion = await _getServerDataVersion();
+        isUpdated = useCache ? (clientDataVersion == serverDataVersion) : false;
+        if (isUpdated) {
+          /* Load localData into memory */
+          await _loadClientData();
+        } else {
+          /* Fetch data from backend */
+          await _fetchServerData();
+          clientDataVersion = serverDataVersion;
+        }
+        isUpdated = true;
+        isReady = true;
       } catch (e) {
         /* Load localData into memory */
         await _loadClientData();
         print(e);
         isUpdated = false;
         isReady = true;
-        return;
-      }
-      isUpdated = (clientDataVersion == serverDataVersion);
-      if (isUpdated) {
-        /* Load localData into memory */
-        await _loadClientData();
-        isUpdated = true;
-        isReady = true;
-        return;
-      } else {
-        try {
-          /* Fetch data from backend */
-          await _fetchServerData();
-        } catch (e) {
-          print(e);
-          /* Load localData into memory */
-          await _loadClientData();
-          isUpdated = false;
-          isReady = true;
-          return;
-        }
-        clientDataVersion = serverDataVersion;
-        isUpdated = true;
-        isReady = true;
-        return;
       }
     } else {
       if (clientDataVersion != 0) {
@@ -76,12 +62,13 @@ class DataSync {
         await _loadClientData();
         isUpdated = false;
         isReady = true;
-        return;
       }
       isUpdated = false;
       isReady = false;
-      return;
     }
+
+    await _loadImages();
+    return;
   }
 
   Future<int> _getClientDataVersion() async {
@@ -160,7 +147,6 @@ class DataSync {
     List<dynamic> redeList = await _fetchRedes();
     for (int i = 0; i < redeList.length; i++) {
       Rede _rowRede = Rede.fromJson(redeList[i]);
-
       for (int j = 0; j < redeList[i]['pontos'].length; j++) {
         Ponto _rowPonto = Ponto.fromJson(redeList[i]['pontos'][j]);
         _rowRede.pontos.add(_rowPonto);
@@ -172,27 +158,24 @@ class DataSync {
         ]);
       }
       /* Cache image */
-      String url = _rowRede.photo; // <-- 1
-      http.Response response = await http.get(url); // <--2
-      Directory documentDirectory = await getApplicationDocumentsDirectory();
-      String firstPath = documentDirectory.path + "/redes/${_rowRede.id}";
-      String filePathAndName =
-          documentDirectory.path + '/redes/${_rowRede.id}/photo.png';
-      await Directory(firstPath).create(recursive: true); // <-- 1
-      File file2 = new File(filePathAndName); // <-- 2
-      file2.writeAsBytesSync(response.bodyBytes); // <-- 3
-      _rowRede.photo = filePathAndName;
+      if (_rowRede.photo != null) {
+        String url = _rowRede.photo; // <-- 1
+        http.Response response = await http.get(url); // <--2
+        Directory documentDirectory = await getApplicationDocumentsDirectory();
+        String firstPath = documentDirectory.path + "/redes/${_rowRede.id}";
+        String filePathAndName =
+            documentDirectory.path + '/redes/${_rowRede.id}/photo.png';
+        await Directory(firstPath).create(recursive: true); // <-- 1
+        File file2 = new File(filePathAndName); // <-- 2
+        file2.writeAsBytesSync(response.bodyBytes); // <-- 3
+        _rowRede.photo = filePathAndName;
+      }
       redes.add(_rowRede);
       await db.rawInsert('INSERT INTO rede(id, nome, photo) VALUES(?, ?, ?)', [
         _rowRede.id,
         _rowRede.nome,
         _rowRede.photo,
       ]);
-      /* print(_rowRede.photo);
-      await Navigator.of(this.context).push(MaterialPageRoute(
-        builder: (context) => Image.file(File(_rowRede.photo)),
-      ));
-      sleep(const Duration(seconds: 1)); */
     }
 
     /* Fetch itemBase */
@@ -255,5 +238,19 @@ class DataSync {
       }
     }
     throw ('Err. Failed to fetch itemBases.');
+  }
+
+  Future<void> _loadImages() async {
+    /*  Bugfix
+        commit 04977ccc3a742cbcfe3f01ee43ac6a1d7919809a não carregava as imagens
+        das redes em 'rede.dart'. AssetImage foi substituído por MemoryImage,
+        com a sequência de bytes sendo carregada aqui.
+    */
+    for (int i = 0; i < redes.length; i++) {
+      if (redes[i].photo != null) {
+        File imageFile = File(redes[i].photo);
+        redes[i].photoBytes = await imageFile.readAsBytes();
+      }
+    }
   }
 }
