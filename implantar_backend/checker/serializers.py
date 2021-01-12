@@ -114,16 +114,28 @@ class ItemBaseSerializer(serializers.ModelSerializer):
 
 
 class ItemSerializer(serializers.ModelSerializer):
-    """ visita_id = serializers.IntegerField(write_only=True)
-    item_base_id = serializers.IntegerField(write_only=True) """
+    visita_id = serializers.IntegerField(required=False)
+    itemBase_id = serializers.IntegerField(write_only=True)
     itemBase = ItemBaseSerializer(required=False)
 
     class Meta:
         model = Item
-        fields = ['id', 'conformidade', 'comment', 'photo', 'itemBase']
+        fields = ['id', 'visita_id', 'clientId', 'itemBase_id', 'conformidade', 'comment', 'photo', 'itemBase']
         extra_kwargs = {
-            'id': {'read_only': False},
+            'id': {'read_only': True},
         }
+
+    def create(self, validated_data):
+        print(validated_data)
+        _visita = Visita.objects.get(pk=validated_data['visita_id'])
+        _itemBase = ItemBase.objects.get(pk=validated_data['itemBase_id'])
+        i = Item.objects.create(
+            clientId=validated_data['clientId'],
+            conformidade=validated_data['conformidade'],
+            visita=_visita,
+            itemBase=_itemBase,
+        )
+        return i
 
     def update(self, instance, validated_data):
         instance.conformidade = validated_data.get('conformidade',
@@ -148,21 +160,28 @@ class VisitaSerializer(serializers.HyperlinkedModelSerializer):
         extra_kwargs = {
             'avaliador': {'read_only': True},
             'data': {'read_only': True},
-            'inicio': {'read_only': True},
-            'termino': {'read_only': True},
         }
 
     def create(self, validated_data):
         avaliador = self.context['request'].user
+        itens = validated_data.pop('item_set')
+
         data = datetime.date.today()
         inicio = timezone.now()
-        v = Visita.objects.create(data=data,
-            inicio=inicio, avaliador=avaliador)
+        termino = timezone.now()
+
+        plantao = validated_data['plantao']
+        v = Visita.objects.create(
+            data=data,
+            inicio=inicio,
+            termino=termino,
+            avaliador=avaliador)
         Ponto.objects.get(id=validated_data['ponto_id']).visitas.add(v)
-        """ Popula visita com itens """
-        itens_pool = ItemBase.objects.filter(active=True)
-        for item in itens_pool:
-            Item.objects.create(itemBase=item, visita=v)
+        for row in itens:
+            row['visita_id'] = v.id
+            serializer = ItemSerializer(data=row)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
         return v
 
     def update(self, instance, validated_data):

@@ -5,7 +5,6 @@ import 'dart:io';
 
 /* Data Storage */
 import 'dart:async';
-import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
 class User {

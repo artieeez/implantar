@@ -95,7 +95,8 @@ class Session {
         );
         await _db.execute(
           """CREATE TABLE visita(
-            id INTEGER PRIMARY KEY,
+            clientId AUTO_INCREMENT INTEGER PRIMARY KEY,
+            id INTEGER UNIQUE,
             concluded INTEGER DEFAULT 0,
             sent INTEGER DEFAULT 0,
             inicio TEXT NOT NULL,
@@ -106,12 +107,14 @@ class Session {
         );
         await _db.execute(
           """CREATE TABLE item(
-            id INTEGER PRIMARY KEY,
+            clientId AUTO_INCREMENT INTEGER PRIMARY KEY,
+            id INTEGER UNIQUE,
             photo TEXT,
             conformidade TEXT DEFAULT 'NO',
+            comment TEXT,
             visita_id INTEGER NOT NULL,
             itemBase_id INTEGER NOT NULL,
-            FOREIGN KEY(visita_id) REFERENCES visita(id),
+            FOREIGN KEY(visita_id) REFERENCES visita(localId),
             FOREIGN KEY(itemBase_id) REFERENCES itemBase(id))""",
         );
         await _db.execute(

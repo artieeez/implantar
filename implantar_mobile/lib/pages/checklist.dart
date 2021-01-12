@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:implantar_mobile/pages/TakePictureScreen.dart';
 import 'package:implantar_mobile/utilities/constantes.dart';
@@ -10,32 +11,11 @@ import 'package:implantar_mobile/services/session.dart';
 /* orientation */
 import 'package:flutter/services.dart';
 
-/* Camera */
 import 'dart:io';
 import 'package:camera/camera.dart';
-
-/* PhotoUpload */
-import 'package:http/http.dart' as http;
-import 'package:implantar_mobile/services/settings.dart' as settings;
-
-/* Files */
 import 'package:path_provider/path_provider.dart';
-/* Data Storage */
 import 'dart:async';
-import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
-
-Future<File> _moveFile(File sourceFile, String newPath) async {
-  try {
-    // prefer using rename as it is probably faster
-    return await sourceFile.rename(newPath);
-  } on FileSystemException catch (e) {
-    // if rename fails, copy the source file and then delete it
-    final newFile = await sourceFile.copy(newPath);
-    await sourceFile.delete();
-    return newFile;
-  }
-}
+import 'package:implantar_mobile/utilities/utils.dart' as utils;
 
 class Checklist extends StatefulWidget {
   final Session session;
@@ -54,19 +34,36 @@ class Checklist extends StatefulWidget {
 
 class _ChecklistState extends State<Checklist> {
   Session session;
-  static const double kBorderRadius = 10;
-  static const double kButtonHeight = 40;
   Rede rede;
   Ponto ponto;
   Visita visita;
+
+  static const double kBorderRadius = 10;
+  static const double kButtonHeight = 40;
+
   _ChecklistState(this.session, this.rede, this.ponto);
 
+  @override
+  void initState() {
+    super.initState();
+    visita = Visita();
+    _newChecklist();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
+  }
+
   void _newChecklist() async {
-    visita = Visita(rede, ponto, session.user);
-    await visita.create();
-    setState(() {
-      print(visita.itens[0].itemBase.text);
-    });
+    visita = await Visita().init(
+      session,
+      ponto_id: ponto.id,
+      itemBases: session.dataSync.itemBases,
+    );
+    setState(() {});
+  }
+
+  void _save() async {
+    await visita.save(session);
   }
 
   Future<String> _takePic(Item item) async {
@@ -84,30 +81,21 @@ class _ChecklistState extends State<Checklist> {
     return path;
   }
 
-  Future<dynamic> _uploadPhoto(Item item, String path) async {
-    var request = http.MultipartRequest(
-        'POST',
-        Uri.parse(settings.API['base'] +
-            settings.API['item-photo'] +
-            item.id.toString() +
-            '/'));
-    request.files.add(
-      http.MultipartFile(
-          'photo', File(path).readAsBytes().asStream(), File(path).lengthSync(),
-          filename: path.split("/").last),
-    );
-    request.headers['Authorization'] = 'token ' + session.user.token;
-    var res = await request.send();
-    return res;
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-    ]);
-    _newChecklist();
+  void _setConformidade(Item item, String conformidade) async {
+    List<String> conformidadeList = ['NO', 'C', 'NC'];
+    if (conformidadeList.contains(conformidade)) {
+      setState(() {
+        item.conformidade = conformidade;
+      });
+      /* Salvar path no banco */
+      session.db.transaction((txn) async {
+        await txn.rawInsert(
+            """UPDATE item SET conformidade = ? WHERE clientId = ?""",
+            [item.conformidade, item.clientId]);
+      });
+    } else {
+      throw ('Conformidade inválida.');
+    }
   }
 
   Widget _buildDescription(index) {
@@ -156,6 +144,7 @@ class _ChecklistState extends State<Checklist> {
         Expanded(
           flex: 1,
           child: Container(
+            /* Botão de Não Conformidade */
             decoration: BoxDecoration(
               color: visita.itens[index].conformidade == 'NC'
                   ? Colors.redAccent
@@ -167,9 +156,7 @@ class _ChecklistState extends State<Checklist> {
             height: kButtonHeight,
             child: TextButton(
               onPressed: () {
-                setState(() {
-                  visita.itens[index].conformidade = 'NC';
-                });
+                _setConformidade(visita.itens[index], 'NC');
               },
               child: Icon(
                 Icons.cancel,
@@ -183,6 +170,7 @@ class _ChecklistState extends State<Checklist> {
         Expanded(
           flex: 1,
           child: Container(
+            /* Botão de Foto */
             decoration: BoxDecoration(
               color: Colors.grey[300],
             ),
@@ -191,54 +179,22 @@ class _ChecklistState extends State<Checklist> {
               onPressed: () async {
                 Item item = visita.itens[index];
                 /* Retorna caminho temporário da imagem. */
-                final _tempPath = await _takePic(item);
-                /* Tenta fazer o upload da imagem/ armazenar no smartphone */
+                final String _tempPath = await _takePic(item);
+                /* armazenar no smartphone */
                 if (_tempPath != null) {
-                  try {
-                    var res =
-                        await _uploadPhoto(visita.itens[index], _tempPath);
-                    if (res.statusCode == 200) {
-                      /* File f;
-                      f = File(_tempPath);
-                      await f.delete(); */
-                      item.photo = _tempPath;
-                    } else {
-                      return;
-                    }
-                  } catch (e) {
-                    print(">>>>>>>>>>>>>>>> CONN REFUSED <<<<<<<<<<<<");
-                    print(e);
-                    /* Em caso de erro, armazena no smartphone */
-                    final directory = await getApplicationDocumentsDirectory();
-                    String _appPath =
-                        '${directory.path}/v${visita.id}/${item.photoFileName()}.png';
-                    item.photo = _appPath;
-                    _moveFile(File(_tempPath), _appPath);
-                    /* Salvar path no sql */
-                    WidgetsFlutterBinding.ensureInitialized();
-                    // Open the database and store the reference.
-                    Database db = await openDatabase(
-                      // Set the path to the database. Note: Using the `join` function from the
-                      // `path` package is best practice to ensure the path is correctly
-                      // constructed for each platform.
-                      join(await getDatabasesPath(), 'implantar.db'),
-                      version: 1,
-                    );
-                    await db.transaction((txn) async {
-                      await txn.rawInsert(
-                          """INSERT INTO ck_item(id, photo) VALUES(?, ?)
-                              ON CONFLICT (id) DO NOTHING""",
-                          [item.id, item.photo]);
-                    });
-                    List ha = await db.query(
-                      'ck_item',
-                      columns: ['photo'],
-                      where: 'id = ?',
-                      whereArgs: [item.id],
-                    );
-                    print(">>>>>>>>>>>>>>>>>>>");
-                    print(ha[0]['photo']);
-                  }
+                  final directory = await getApplicationDocumentsDirectory();
+                  String _appPath =
+                      """${directory.path}/visita_${visita.clientId}/${item.photoFileName()}""";
+                  item.photo = _appPath;
+                  // TODO salvar numa bibliotéca
+                  /* Move arquivo p/ fora do arm. de cache */
+                  utils.moveFile(File(_tempPath), _appPath);
+                  /* Salvar path no banco */
+                  await session.db.transaction((txn) async {
+                    await txn.rawInsert("""
+                        UPDATE item SET photo = ? WHERE clientId = ?
+                        """, [item.photo, item.clientId]);
+                  });
                 }
               },
               child: Icon(
@@ -251,6 +207,7 @@ class _ChecklistState extends State<Checklist> {
         Expanded(
           flex: 1,
           child: Container(
+            /* Botão de Conformidade */
             decoration: BoxDecoration(
               color: visita.itens[index].conformidade == 'C'
                   ? Colors.green[400]
@@ -262,9 +219,7 @@ class _ChecklistState extends State<Checklist> {
             height: kButtonHeight,
             child: TextButton(
               onPressed: () {
-                setState(() {
-                  visita.itens[index].conformidade = 'C';
-                });
+                _setConformidade(visita.itens[index], 'C');
               },
               child: Icon(
                 Icons.check,
@@ -326,7 +281,8 @@ class _ChecklistState extends State<Checklist> {
               children: [
                 RaisedButton(
                   onPressed: () async {
-                    dynamic temp = await Navigator.of(context).push(
+                    final Uint8List signatureBytes =
+                        await Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => ChecklistSignature(
                             user: session.user,
@@ -335,8 +291,15 @@ class _ChecklistState extends State<Checklist> {
                             visita: visita),
                       ),
                     );
-                    await visita.update();
-                    Navigator.pop(context);
+                    /* Save  */
+                    if (signatureBytes != null) {
+                      visita.signatureBytes = signatureBytes;
+                      _save();
+                      print("#2");
+                      Navigator.pop(context);
+                    }
+                    /* Continuar editando */
+                    return;
                   },
                   color: kPrimaryColor,
                   child: Row(

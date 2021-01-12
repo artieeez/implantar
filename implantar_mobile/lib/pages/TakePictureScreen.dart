@@ -84,17 +84,16 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
           try {
             // Ensure that the camera is initialized.
             await _initializeControllerFuture;
-
             // Construct the path where the image should be saved using the
             // pattern package.
 
             String _fileName =
-                '${item.id.toString()}_${item.photoVersion.toString()}.png';
+                '${item.clientId.toString()}_${item.photoVersion.toString()}.png';
             String _path = join(
               // Store the picture in the temp directory.
               // Find the temp directory using the `path_provider` plugin.
               (await getApplicationDocumentsDirectory()).path,
-              'v_${visita.id.toString()}/',
+              'visita_${visita.clientId.toString()}/',
             );
             /* Cria pasta */
             if (!await Directory(_path).exists()) {
@@ -103,7 +102,8 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
             /* Caso arquivo exista, acrescente nova versao */
             if (await File(_path + _fileName).exists()) {
               int v = item.photoVersion + 1;
-              _fileName = '${item.id.toString()}_${v.toString()}.png';
+              _fileName =
+                  'item_${item.clientId.toString()}_${v.toString()}.png';
             }
             final path = join(
               // Store the picture in the temp directory.

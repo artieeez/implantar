@@ -1,12 +1,9 @@
-import 'dart:ffi';
 import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:implantar_mobile/utilities/constantes.dart';
 import 'package:implantar_mobile/pages/pontos.dart';
 import 'package:implantar_mobile/pages/drawer.dart';
 import 'package:implantar_mobile/api/models.dart';
-import 'dart:io';
 
 /* Services */
 import 'package:implantar_mobile/services/session.dart';
@@ -28,12 +25,19 @@ class _RedeListState extends State<RedeList> {
 
   List<Rede> results;
 
-  Widget _returnRedeIcon(Uint8List byteList) {
+  Widget _returnRedeIcon(String nome, Uint8List byteList) {
     Widget _avatar;
     _avatar = CircleAvatar(
-      backgroundImage: byteList != null
-          ? MemoryImage(byteList)
-          : NetworkImage('https://via.placeholder.com/150'),
+      backgroundColor: Colors.blueGrey[100],
+      backgroundImage: byteList != null ? MemoryImage(byteList) : null,
+      child: byteList != null
+          ? null
+          : Text(
+              nome[0],
+              style: TextStyle(
+                color: kPrimaryColor,
+              ),
+            ),
     );
     return _avatar;
   }
@@ -90,7 +94,7 @@ class _RedeListState extends State<RedeList> {
           builder: (context) => PontoList(session: session, rede: rede),
         ),
       ),
-      leading: _returnRedeIcon(rede.photoBytes),
+      leading: _returnRedeIcon(rede.nome, rede.photoBytes),
     );
   }
 }

@@ -12,7 +12,6 @@ import 'package:path_provider/path_provider.dart';
 
 /* Data Storage */
 import 'dart:async';
-import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
 class DataSync {

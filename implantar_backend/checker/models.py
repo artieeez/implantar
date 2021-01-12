@@ -148,6 +148,7 @@ class Item(models.Model):
         ('NO', 'Não Observado'),
     ]
     
+    clientId = models.IntegerField()
     conformidade = models.CharField(max_length=3,
         choices=CONFORMIDADE_CHOICHES, default='NO')
     visita = models.ForeignKey('checker.Visita', on_delete=models.CASCADE)

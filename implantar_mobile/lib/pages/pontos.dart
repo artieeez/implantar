@@ -78,7 +78,17 @@ class _PontoListState extends State<PontoList> {
         ),
       ),
       leading: CircleAvatar(
-        backgroundColor: Colors.deepOrange,
+        backgroundColor: Colors.blueGrey[100],
+        backgroundImage:
+            ponto.photoBytes != null ? MemoryImage(ponto.photoBytes) : null,
+        child: ponto.photoBytes != null
+            ? null
+            : Text(
+                ponto.nome[0],
+                style: TextStyle(
+                  color: kPrimaryColor,
+                ),
+              ),
       ),
     );
   }
