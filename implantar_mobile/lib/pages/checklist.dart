@@ -56,7 +56,8 @@ class _ChecklistState extends State<Checklist> {
   void _newChecklist() async {
     visita = await Visita().init(
       session,
-      ponto_id: ponto.id,
+      rede: rede,
+      ponto: ponto,
       itemBases: session.dataSync.itemBases,
     );
     setState(() {});

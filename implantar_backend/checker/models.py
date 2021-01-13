@@ -17,6 +17,7 @@ class Profile(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         null=True)
+    vCount = models.IntegerField(default=1)
     display_name = models.CharField(max_length=255)
     in_trash = models.BooleanField(default=False)
 

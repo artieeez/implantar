@@ -45,9 +45,13 @@ class Visita {
   List<Item> itens = [];
   String plantao;
 
-  Future<Visita> init(Session session,
-      {int ponto_id, List<ItemBase> itemBases}) async {
-    this.ponto_id = ponto_id;
+  Future<Visita> init(
+    Session session, {
+    Rede rede,
+    Ponto ponto,
+    List<ItemBase> itemBases,
+  }) async {
+    this.ponto_id = ponto.id;
     clientId = await _getClientId(session.db);
     int itemClientId = await _getItemClientId(session.db);
     print("#1");
@@ -293,127 +297,3 @@ class Item {
     return res;
   }
 }
-
-/* class Visita_old {
-  String API_BASE;
-  String API_ENDPOINT;
-  User user;
-  Rede rede;
-  Ponto ponto;
-  List<Item> itens = [];
-
-  int id;
-
-  Visita(rede, ponto, user) {
-    this.rede = rede;
-    this.ponto = ponto;
-    this.user = user;
-    this.API_BASE = settings.API['base'];
-    this.API_ENDPOINT = settings.API['visitas'];
-  }
-
-  Future<void> create() async {
-    int count = 0; // tentativas de conexão
-    while (count < settings.CONN_LIMIT) {
-      try {
-        http.Response response = await http.post(
-          API_BASE + API_ENDPOINT,
-          headers: <String, String>{
-            'Authorization': 'token ' + user.token,
-            'Content-Type': 'application/json; charset=UTF-8',
-          },
-          body: jsonEncode(<String, String>{
-            'ponto_id': ponto.id.toString(),
-          }),
-        );
-        if (response.statusCode == 201) {
-          Map data = jsonDecode(utf8.decode(response.bodyBytes));
-          print(data);
-          id = data['id'];
-          for (int i = 0; i < data['item_set'].length; i++) {
-            Item item = Item.fromJson(data['item_set'][i]);
-            itens.add(item);
-          }
-          print(itens[0].itemBase.text);
-          return;
-        } else {
-          return;
-        }
-      } catch (e) {
-        print(e);
-        count++;
-        sleep(const Duration(seconds: 5));
-      }
-    }
-    return;
-  }
-
-  Future<void> update() async {
-    int count = 0; // tentativas de conexão
-    while (count < settings.CONN_LIMIT) {
-      try {
-        List<Map> item_set = [];
-        for (int i = 0; i < itens.length; i++) {
-          Map<String, dynamic> item = {
-            'conformidade': itens[i].conformidade,
-            'id': itens[i].id,
-          };
-          item_set.add(item);
-        }
-
-        http.Response response = await http.put(
-          API_BASE + API_ENDPOINT + this.id.toString() + '/',
-          headers: <String, String>{
-            'Authorization': 'token ' + user.token,
-            'Content-Type': 'application/json; charset=UTF-8',
-          },
-          body: jsonEncode(<String, dynamic>{
-            'item_set': item_set,
-            'plantao': 'PLACEHOLDER000',
-          }),
-        );
-        if (response.statusCode == 201) {
-          return;
-        } else {
-          print(response.body);
-          return;
-        }
-      } catch (e) {
-        print(e);
-        count++;
-        sleep(const Duration(seconds: 5));
-      }
-    }
-    return;
-  }
-}
-
-class Item_old {
-  int id;
-  ItemBase itemBase;
-  String _photo;
-  int photoVersion = 0;
-  String comment;
-  String conformidade;
-  bool isOk;
-  bool isReady;
-
-  Item.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    itemBase = ItemBase.fromJson(json['itemBase']);
-    photoVersion = 0;
-  }
-  set photo(String path) {
-    _photo = path;
-    photoVersion += 1;
-  }
-
-  String get photo => _photo;
-
-  String photoFileName() {
-    /* Deve ser usado apenas antes de salvar o endereço em 'photo' */
-    int v = photoVersion + 1;
-    return '${id.toString()}_${v.toString()}.png';
-  }
-}
- */

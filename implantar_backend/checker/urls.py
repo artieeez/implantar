@@ -19,6 +19,7 @@ router.register(r'trash/item_base', views.TrashItemBaseViewSet, basename='trash-
 # The API URLs are now determined automatically by the router.
 urlpatterns = [
     path('', include(router.urls)),
+    path('token-auth/', views.CustomAuthToken.as_view()),
     path('redes/<int:pk>/pontos/', views.RedeViewSet.as_view({'get': 'pontos'})),
     path('trash/redes/<int:pk>/restore/', views.TrashRedeViewSet.as_view({'post': 'restore'})),
     path('pontos/<int:pk>/visitas/', views.PontoViewSet.as_view({'get': 'visitas'})),

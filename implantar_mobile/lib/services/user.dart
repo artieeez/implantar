@@ -9,6 +9,11 @@ import 'package:sqflite/sqflite.dart';
 
 class User {
   BuildContext context;
+  int id;
+  /* <vCount>
+  Número sequencial relacionado com o número de visitas. Usado no
+  gerador de id de Visita */
+  int vCount;
   String nome;
   String token;
   bool isAuthenticated = false;
@@ -30,8 +35,11 @@ class User {
     }
     if (hasConnection && !isAuthenticated) {
       /* Novo token */
-      final result = await Navigator.pushNamed(context, '/login');
-      token = result;
+      final Map<String, dynamic> result =
+          await Navigator.pushNamed(context, '/login');
+      id = result['id'];
+      nome = result['nome'];
+      token = result['token'];
       /* Limpa db */
       await db.delete(
         'user',
@@ -48,6 +56,7 @@ class User {
   }
 
   populateWithMap(map) {
+    id = map['id'];
     token = map['token'];
   }
 
@@ -96,6 +105,7 @@ class User {
 
   Map<String, dynamic> toMap() {
     return {
+      'id': id,
       'nome': nome,
       'token': token,
     };

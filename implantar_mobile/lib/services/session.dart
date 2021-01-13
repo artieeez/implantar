@@ -71,7 +71,8 @@ class Session {
       onCreate: (_db, version) async {
         await _db.execute(
           """CREATE TABLE user(
-            id AUTO_INCREMENT INTEGER PRIMARY KEY,
+            id INTEGER PRIMARY KEY,
+            vCount INTEGER,
             nome TEXT,
             token TEXT)""",
         );

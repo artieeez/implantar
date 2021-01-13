@@ -7,8 +7,7 @@ from django.conf import settings
 
 urlpatterns = [
     path('api/', include('checker.urls')),
-    path('api-auth/', include('rest_framework.urls')),
-    path('api-token-auth/', views.obtain_auth_token),
+    path('api-auth/', include('rest_framework.urls')), # browsable api login
     path('admin/', admin.site.urls),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

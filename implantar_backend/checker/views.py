@@ -27,9 +27,27 @@ from rest_framework.parsers import MultiPartParser, FormParser
 
 
 # Auth
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from checker.permissions import IsOwnerOrReadOnly, IsAssigned, EoProprioUsuario
+
+
+class CustomAuthToken(ObtainAuthToken):
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data,
+                                           context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({
+            'token': token.key,
+            'id': user.pk,
+            'display_name': user.profile.display_name,
+            'vCount': user.profile.vCount
+        })
 
 
 class AvaliadorViewSet(viewsets.ModelViewSet):

@@ -18,10 +18,12 @@ class Login extends StatefulWidget {
 
 class _LoginState extends State<Login> {
   static bool _showPassword = false;
-  static bool _fetching = false;
+  static bool _fetching = false; // UX Controla estado de fetching
   static String _username;
   static String _password;
+  static String _id;
   static String _token;
+  static String _nome;
 
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
@@ -50,8 +52,12 @@ class _LoginState extends State<Login> {
     _password = passwordController.text;
     bool tata = await login(_username, _password);
     if (tata) {
-      /* Retorna token para a classe user */
-      Navigator.pop(context, _token);
+      /* Retorna userData para a classe user */
+      Map<String, dynamic> _userData;
+      _userData['id'] = _id;
+      _userData['nome'] = _nome;
+      _userData['token'] = _token;
+      Navigator.pop(context, _userData);
     } else {
       await showAlertDialog(context);
       setState(() {
@@ -78,6 +84,8 @@ class _LoginState extends State<Login> {
           }),
         );
         if (response.statusCode == 200) {
+          _id = jsonDecode(response.body)['id'];
+          _nome = jsonDecode(response.body)['nome'];
           _token = jsonDecode(response.body)['token'];
           return true;
         } else {
