@@ -19,4 +19,4 @@ const Map<String, String> API = {
 const bool CACHE = true;
 
 /* Carregar visitas em aberto */
-const bool VISITA_SAFE = true;
+const bool VISITA_SAFE = false;

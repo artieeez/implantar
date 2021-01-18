@@ -176,6 +176,9 @@ class ItemBase(models.Model):
     class Meta:
         ordering = ['categoria__id_arb', 'id_arb']
 
+    def __str__(self):
+        return f'{self.categoria.id_arb}.{self.id_arb} - {self.text}'
+
 
 class Categoria(models.Model):
     id_arb = models.IntegerField(null=True)
@@ -183,3 +186,6 @@ class Categoria(models.Model):
 
     class Meta:
         ordering = ['id_arb']
+
+    def __str__(self):
+        return f'{self.id_arb} - {self.nome}'

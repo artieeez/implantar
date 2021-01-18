@@ -129,7 +129,7 @@ class _ChecklistState extends State<Checklist> {
     return Row(
       children: [
         Expanded(
-          flex: 1,
+          flex: 4,
           child: Container(
             /* Botão de Não Conformidade */
             decoration: BoxDecoration(
@@ -157,7 +157,24 @@ class _ChecklistState extends State<Checklist> {
           ),
         ),
         Expanded(
-          flex: 1,
+          flex: 3,
+          child: Container(
+            /* Botão de Foto */
+            decoration: BoxDecoration(
+              color: Colors.grey[400],
+            ),
+            height: kButtonHeight,
+            child: TextButton(
+              onPressed: () async {},
+              child: Icon(
+                Icons.insert_comment_outlined,
+                color: Colors.grey[200],
+              ),
+            ),
+          ),
+        ),
+        Expanded(
+          flex: 3,
           child: Container(
             /* Botão de Foto */
             decoration: BoxDecoration(
@@ -176,13 +193,13 @@ class _ChecklistState extends State<Checklist> {
               },
               child: Icon(
                 Icons.camera_alt,
-                color: Colors.white54,
+                color: Colors.grey[500],
               ),
             ),
           ),
         ),
         Expanded(
-          flex: 1,
+          flex: 4,
           child: Container(
             /* Botão de Conformidade */
             decoration: BoxDecoration(
@@ -219,15 +236,29 @@ class _ChecklistState extends State<Checklist> {
       onWillPop: () async => false,
       child: Scaffold(
         appBar: AppBar(
+          automaticallyImplyLeading: false,
           iconTheme: IconThemeData(color: kAccentColor),
           title: Text(
-            rede.nome + ' ' + ponto.nome,
+            rede.nome +
+                ' ' +
+                ponto.nome +
+                ' - ' +
+                (visita.inicio.day < 10
+                    ? '0' + visita.inicio.day.toString()
+                    : visita.inicio.day.toString()) +
+                '/' +
+                (visita.inicio.month < 10
+                    ? '0' + visita.inicio.month.toString()
+                    : visita.inicio.month.toString()) +
+                '/' +
+                visita.inicio.year.toString(),
             style: kFont1,
           ),
         ),
-        body: Column(
+        body: ListView(
           children: <Widget>[
             ListView.builder(
+              physics: ScrollPhysics(),
               shrinkWrap: true,
               padding: EdgeInsets.symmetric(vertical: 10, horizontal: 5.0),
               itemCount: visita.itens.length,
@@ -256,44 +287,107 @@ class _ChecklistState extends State<Checklist> {
               },
             ),
             Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                RaisedButton(
-                  onPressed: () async {
-                    final Uint8List signatureBytes =
-                        await Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => ChecklistSignature(
-                            user: session.user,
-                            rede: rede,
-                            ponto: ponto,
-                            visita: visita),
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(5, 5, 2.5, 5),
+                    child: RaisedButton(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(kBorderRadius),
                       ),
-                    );
-                    /* Save  */
-                    if (signatureBytes != null) {
-                      visita.signatureBytes = signatureBytes;
-                      _save();
-                      Navigator.pop(context);
-                    }
-                    /* Continuar editando */
-                    return;
-                  },
-                  color: kPrimaryColor,
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.navigate_next,
-                        color: Colors.white,
-                      ),
-                      Text(
-                        'Prosseguir para a coleta de assinatura',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18.0,
+                      onPressed: () async {
+                        final Uint8List signatureBytes =
+                            await Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => ChecklistSignature(
+                                user: session.user,
+                                rede: rede,
+                                ponto: ponto,
+                                visita: visita),
+                          ),
+                        );
+                        /* Save  */
+                        if (signatureBytes != null) {
+                          visita.signatureBytes = signatureBytes;
+                          _save();
+                          Navigator.pop(context);
+                        }
+                        /* Continuar editando */
+                        return;
+                      },
+                      color: Colors.grey,
+                      child: Padding(
+                        padding: EdgeInsets.all(5),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.create_outlined,
+                              color: Colors.white,
+                            ),
+                            Text(
+                              'Assinatura',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18.0,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(5, 5, 2.5, 5),
+                    child: RaisedButton(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(kBorderRadius),
+                      ),
+                      onPressed: () async {},
+                      color: Colors.grey,
+                      child: Padding(
+                        padding: EdgeInsets.all(5),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.insert_comment_outlined,
+                              color: Colors.white,
+                            ),
+                            Text(
+                              'Comentário',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18.0,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: RaisedButton(
+                    onPressed: () async {},
+                    color: kPrimaryColor,
+                    child: Padding(
+                      padding: EdgeInsets.all(15),
+                      child: Text(
+                        'Concluir visita',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24.0,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ],
