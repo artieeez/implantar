@@ -252,4 +252,35 @@ class DataSync {
       }
     }
   }
+
+  Future<void> syncVisitas({Visita visita}) async {
+    List Visita;
+  }
+
+  Rede getRede({id}) {
+    if (id != null) {
+      for (int i = 0; i < redes.length; i++) {
+        Rede rede = redes[i];
+        if (rede.id == id) {
+          return rede;
+        }
+      }
+    }
+    throw ('Inserir argumento para busca.');
+  }
+
+  Ponto getPonto({id}) {
+    if (id != null) {
+      for (int i = 0; i < redes.length; i++) {
+        Rede rede = redes[i];
+        for (int j = 0; j < rede.pontos.length; j++) {
+          Ponto ponto = rede.pontos[j];
+          if (ponto.id == id) {
+            return ponto;
+          }
+        }
+      }
+    }
+    throw ('Inserir argumento para busca.');
+  }
 }

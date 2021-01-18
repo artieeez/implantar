@@ -11,25 +11,25 @@ import 'package:implantar_mobile/services/session.dart';
 /* orientation */
 import 'package:flutter/services.dart';
 
-import 'dart:io';
 import 'package:camera/camera.dart';
-import 'package:path_provider/path_provider.dart';
 import 'dart:async';
-import 'package:implantar_mobile/utilities/utils.dart' as utils;
 
 class Checklist extends StatefulWidget {
   final Session session;
   final Rede rede;
   final Ponto ponto;
-  Checklist(
-      {Key key,
-      @required this.session,
-      @required this.rede,
-      @required this.ponto})
-      : super(key: key);
+  final Visita visita;
+  Checklist({
+    Key key,
+    @required this.session,
+    @required this.rede,
+    @required this.ponto,
+    this.visita,
+  }) : super(key: key);
 
   @override
-  _ChecklistState createState() => _ChecklistState(session, rede, ponto);
+  _ChecklistState createState() =>
+      _ChecklistState(session, rede, ponto, visita);
 }
 
 class _ChecklistState extends State<Checklist> {
@@ -41,13 +41,16 @@ class _ChecklistState extends State<Checklist> {
   static const double kBorderRadius = 10;
   static const double kButtonHeight = 40;
 
-  _ChecklistState(this.session, this.rede, this.ponto);
+  _ChecklistState(this.session, this.rede, this.ponto, this.visita);
 
   @override
   void initState() {
     super.initState();
-    visita = Visita();
-    _newChecklist();
+    /* Cria nova visita caso necessário */
+    if (visita == null) {
+      visita = Visita();
+      _newChecklist();
+    }
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
     ]);
@@ -67,36 +70,19 @@ class _ChecklistState extends State<Checklist> {
     await visita.save(session);
   }
 
-  Future<String> _takePic(Item item) async {
+  Future<Uint8List> _takePic(Item item) async {
     WidgetsFlutterBinding.ensureInitialized();
     // Obtain a list of the available cameras on the device.
     final cameras = await availableCameras();
     // Get a specific camera from the list of available cameras.
     final firstCamera = cameras.first;
-    String path = await Navigator.of(this.context).push(
+    Uint8List photoBytes = await Navigator.of(this.context).push(
       MaterialPageRoute(
         builder: (context) =>
             TakePictureScreen(camera: firstCamera, visita: visita, item: item),
       ),
     );
-    return path;
-  }
-
-  void _setConformidade(Item item, String conformidade) async {
-    List<String> conformidadeList = ['NO', 'C', 'NC'];
-    if (conformidadeList.contains(conformidade)) {
-      setState(() {
-        item.conformidade = conformidade;
-      });
-      /* Salvar path no banco */
-      session.db.transaction((txn) async {
-        await txn.rawInsert(
-            """UPDATE item SET conformidade = ? WHERE clientId = ?""",
-            [item.conformidade, item.clientId]);
-      });
-    } else {
-      throw ('Conformidade inválida.');
-    }
+    return photoBytes;
   }
 
   Widget _buildDescription(index) {
@@ -157,7 +143,9 @@ class _ChecklistState extends State<Checklist> {
             height: kButtonHeight,
             child: TextButton(
               onPressed: () {
-                _setConformidade(visita.itens[index], 'NC');
+                setState(() {
+                  visita.itens[index].setConformidade(session, 'NC');
+                });
               },
               child: Icon(
                 Icons.cancel,
@@ -180,22 +168,10 @@ class _ChecklistState extends State<Checklist> {
               onPressed: () async {
                 Item item = visita.itens[index];
                 /* Retorna caminho temporário da imagem. */
-                final String _tempPath = await _takePic(item);
+                final Uint8List photoBytes = await _takePic(item);
                 /* armazenar no smartphone */
-                if (_tempPath != null) {
-                  final directory = await getApplicationDocumentsDirectory();
-                  String _appPath =
-                      """${directory.path}/visita_${visita.clientId}/${item.photoFileName()}""";
-                  item.photo = _appPath;
-                  // TODO salvar numa bibliotéca
-                  /* Move arquivo p/ fora do arm. de cache */
-                  utils.moveFile(File(_tempPath), _appPath);
-                  /* Salvar path no banco */
-                  await session.db.transaction((txn) async {
-                    await txn.rawInsert("""
-                        UPDATE item SET photo = ? WHERE clientId = ?
-                        """, [item.photo, item.clientId]);
-                  });
+                if (photoBytes != null) {
+                  item.setFoto(session, photoBytes);
                 }
               },
               child: Icon(
@@ -220,7 +196,9 @@ class _ChecklistState extends State<Checklist> {
             height: kButtonHeight,
             child: TextButton(
               onPressed: () {
-                _setConformidade(visita.itens[index], 'C');
+                setState(() {
+                  visita.itens[index].setConformidade(session, 'C');
+                });
               },
               child: Icon(
                 Icons.check,
@@ -296,7 +274,6 @@ class _ChecklistState extends State<Checklist> {
                     if (signatureBytes != null) {
                       visita.signatureBytes = signatureBytes;
                       _save();
-                      print("#2");
                       Navigator.pop(context);
                     }
                     /* Continuar editando */

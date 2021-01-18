@@ -35,8 +35,7 @@ class User {
     }
     if (hasConnection && !isAuthenticated) {
       /* Novo token */
-      final Map<String, dynamic> result =
-          await Navigator.pushNamed(context, '/login');
+      final dynamic result = await Navigator.pushNamed(context, '/login');
       id = result['id'];
       nome = result['nome'];
       token = result['token'];
@@ -109,5 +108,14 @@ class User {
       'nome': nome,
       'token': token,
     };
+  }
+
+  int vCountGetter() {
+    vCount++;
+    db.transaction((txn) async {
+      await txn.rawInsert(
+          """UPDATE user SET vCount = ? WHERE id = ?""", [vCount, id]);
+    });
+    return vCount;
   }
 }

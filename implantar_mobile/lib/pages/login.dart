@@ -21,7 +21,7 @@ class _LoginState extends State<Login> {
   static bool _fetching = false; // UX Controla estado de fetching
   static String _username;
   static String _password;
-  static String _id;
+  static int _id;
   static String _token;
   static String _nome;
 
@@ -53,7 +53,7 @@ class _LoginState extends State<Login> {
     bool tata = await login(_username, _password);
     if (tata) {
       /* Retorna userData para a classe user */
-      Map<String, dynamic> _userData;
+      Map<String, dynamic> _userData = {};
       _userData['id'] = _id;
       _userData['nome'] = _nome;
       _userData['token'] = _token;

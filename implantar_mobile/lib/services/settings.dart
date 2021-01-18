@@ -14,4 +14,9 @@ const Map<String, String> API = {
   'itemBase': 'api/item_base/active/',
 };
 
+/* Usar cache 
+  Necessário para modo offline */
 const bool CACHE = true;
+
+/* Carregar visitas em aberto */
+const bool VISITA_SAFE = true;

@@ -4,6 +4,7 @@ import 'package:implantar_mobile/services/settings.dart' as settings;
 import 'dart:io';
 import 'dart:convert';
 import 'package:implantar_mobile/services/session.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'package:sqflite/sqflite.dart';
 
@@ -37,13 +38,101 @@ class Ponto {
 class Visita {
   int id;
   int clientId;
-  int ponto_id;
+  bool concluded = false;
+  bool sent = false;
   DateTime inicio;
   DateTime termino;
-  String signature;
+  static String _signature;
+  static int _signatureVersion;
   Uint8List signatureBytes;
   List<Item> itens = [];
   String plantao;
+  Ponto ponto;
+  static bool _itensReady;
+  Visita();
+
+  void setSignature(Session session, Uint8List imageBytes) async {
+    _signatureVersion += 1;
+    final directory = await getApplicationDocumentsDirectory();
+    String finalPath =
+        """${directory.path}/visita_$clientId/${signatureFileName()}""";
+    if (_signature != null) {
+      File file = File(_signature);
+      file.delete();
+    }
+    session.db.rawInsert(
+      """UPDATE visita SET signature = ? WHERE clientId = ?""",
+      [finalPath, clientId],
+    );
+    _signature = finalPath;
+
+    File(finalPath).writeAsBytes(imageBytes);
+  }
+
+  String get signature => _signature;
+
+  String signatureFileName() {
+    return 'signature_${_signatureVersion.toString()}.png';
+  }
+
+  Visita.fromDb(Session session, {Map<String, dynamic> data}) {
+    /* Inicializa visita a partir do banco */
+    id = data['id'];
+    clientId = data['clientId'];
+    concluded = data['concluded'] == 1 ? true : false;
+    sent = data['sent'] == 1 ? true : false;
+    inicio = DateTime.parse(data['inicio']);
+    termino = data['termino'] != null ? DateTime.parse(data['termino']) : null;
+    _signature = data['signature'];
+    plantao = data['plantao'];
+    ponto = session.dataSync.getPonto(id: data['ponto_id']);
+    _itensReady = false;
+  }
+
+  Future<void> initItens(Session session, {bool novo: false}) async {
+    _itensReady = true;
+    if (novo) {
+      /* Inicializa novos itens */
+      int itemClientId = await _getItemClientId(session.db);
+      for (int i = 0; i < session.dataSync.itemBases.length; i++) {
+        Item item = Item(
+          clientId: itemClientId,
+          itemBase: session.dataSync.itemBases[i],
+          ponto: ponto,
+          visita: this,
+        );
+        itens.add(item);
+        itemClientId++;
+      }
+    } else {
+      /* Inicializa com dados do DB */
+      List<ItemBase> itemBasesList = session.dataSync.itemBases;
+      List<dynamic> itensMaps = await session.db
+          .rawQuery("""SELECT * FROM item WHERE visita_id = ?""", [clientId]);
+      for (int i = 0; i < itensMaps.length; i++) {
+        Map row = itensMaps[i];
+        ItemBase itemBase;
+        for (int j = 0; j < itemBasesList.length; j++) {
+          if (itemBasesList[j].id == row['itemBase_id']) {
+            itemBase = itemBasesList[j];
+          }
+        }
+        bool _rowSent = row['sent'] == 1 ? true : false;
+        Item item = Item(
+          clientId: row['clientId'],
+          sent: _rowSent,
+          conformidade: row['conformidade'],
+          comment: row['comment'],
+          photoVersion: row['photoVersion'],
+          itemBase: itemBase,
+          photo: row['photo'],
+          ponto: ponto,
+          visita: this,
+        );
+        itens.add(item);
+      }
+    }
+  }
 
   Future<Visita> init(
     Session session, {
@@ -51,59 +140,75 @@ class Visita {
     Ponto ponto,
     List<ItemBase> itemBases,
   }) async {
-    this.ponto_id = ponto.id;
+    /* Inicializa nova visita */
+    this.ponto = ponto;
     clientId = await _getClientId(session.db);
-    int itemClientId = await _getItemClientId(session.db);
-    print("#1");
-    for (int i = 0; i < itemBases.length; i++) {
-      Item item = Item(clientId: itemClientId, itemBase: itemBases[i]);
-      itens.add(item);
-      itemClientId++;
-    }
-    print("#2");
-
     this.inicio = new DateTime.now();
+    this.concluded = false;
+    await initItens(session, novo: true);
     _toDb(session.db);
-    print("#3");
     return this;
   }
 
-  void _toDb(Database db) async {
-    print("db#1");
+  Future<int> _getClientId(Database db) async {
+    List _querylist = await db
+        .rawQuery('SELECT clientId FROM visita ORDER BY clientId DESC LIMIT 1');
+    if (_querylist.isNotEmpty && (_querylist[0]['clientId'] != null)) {
+      return _querylist[0]['clientId'] + 1;
+    } else {
+      return 1;
+    }
+  }
 
+  Future<int> _getItemClientId(Database db) async {
+    List _querylist = await db
+        .rawQuery('SELECT clientId FROM item ORDER BY clientId DESC LIMIT 1');
+    if (_querylist.isNotEmpty && (_querylist[0]['clientId'] != null)) {
+      return _querylist[0]['clientId'] + 1;
+    } else {
+      return 1;
+    }
+  }
+
+  void _toDb(Database db) async {
     db.transaction((txn) async {
       await txn.rawInsert(
-          """INSERT INTO visita(ponto_id, inicio) VALUES(?, ?)""",
-          [ponto_id, inicio.toIso8601String()]);
+          """INSERT INTO visita(clientId, ponto_id, inicio, concluded)
+          VALUES(?, ?, ?, ?)""",
+          [clientId, ponto.id, inicio.toIso8601String(), concluded]);
     });
     db.transaction((txn) async {
       for (int i = 0; i < itens.length; i++) {
+        Item row = itens[i];
         await txn.rawInsert(
-            """INSERT INTO item(visita_id, itemBase_id) VALUES(?, ?)""",
-            [clientId, itens[i].itemBase.id]);
+            """INSERT INTO item(clientId, visita_id, itemBase_id) VALUES(?, ?, ?)""",
+            [row.clientId, clientId, row.itemBase.id]);
       }
     });
-    print("db#2");
-  }
-
-  Future<void> terminar() async {
-    this.termino = new DateTime.now();
-    return;
   }
 
   Future<void> save(Session session) async {
+    this.concluded = true;
     this.termino = new DateTime.now();
+    session.db.transaction((txn) async {
+      await txn.rawInsert(
+          """UPDATE visita SET concluded = ?, termino = ? WHERE clientId = ?""",
+          [1, termino.toIso8601String(), clientId]);
+    });
     try {
       await _enviar(session);
       await _uploadSignature(session);
       await _uploadPhotos(session);
+      this.sent = true;
+      session.db.transaction((txn) async {
+        await txn.rawInsert(
+            """UPDATE visita SET sent = ? WHERE clientId = ?""", [1, clientId]);
+      });
       _cleanData(session);
     } catch (e) {
       print(e);
     }
   }
-
-  Future<void> _cleanData(Session session) async {}
 
   Future<bool> _enviar(Session session) async {
     int count = 0; // tentativas de conexão
@@ -125,14 +230,13 @@ class Visita {
             'Content-Type': 'application/json; charset=UTF-8',
           },
           body: jsonEncode(<String, dynamic>{
-            'ponto_id': ponto_id.toString(),
+            'ponto_id': ponto.id.toString(),
             'item_set': item_set,
             'inicio': inicio.toIso8601String(),
             'termino': termino.toIso8601String(),
             'plantao': 'FIXME',
           }),
         );
-        print(utf8.decode(response.bodyBytes));
         if (response.statusCode == 201) {
           /* Atualiza o id para o id do backend 
               Importante para futuras conexoes
@@ -207,24 +311,18 @@ class Visita {
     }
   }
 
-  Future<int> _getClientId(Database db) async {
-    List _querylist = await db
-        .rawQuery('SELECT clientId FROM visita ORDER BY clientId DESC LIMIT 1');
-    if (_querylist.isNotEmpty && (_querylist[0]['clientId'] != null)) {
-      return _querylist[0]['clientId'] + 1;
-    } else {
-      return 1;
-    }
-  }
-
-  Future<int> _getItemClientId(Database db) async {
-    List _querylist = await db
-        .rawQuery('SELECT clientId FROM item ORDER BY clientId DESC LIMIT 1');
-    if (_querylist.isNotEmpty && (_querylist[0]['clientId'] != null)) {
-      return _querylist[0]['clientId'] + 1;
-    } else {
-      return 1;
-    }
+  Future<void> _cleanData(Session session) async {
+    File signatureFile = File(signature);
+    await signatureFile.delete();
+    session.db.transaction((txn) async {
+      for (int i = 0; i < itens.length; i++) {
+        File f = File(itens[i].photo);
+        await f.delete();
+        txn.rawDelete(
+            'DELETE FROM item WHERE clientId = ?', [itens[i].clientId]);
+      }
+    });
+    session.db.rawDelete('DELETE FROM visita WHERE clientId = ?', [clientId]);
   }
 }
 
@@ -250,33 +348,72 @@ class ItemBase {
 
 class Item {
   int id;
-  int clientId;
-  int visita_id;
-  ItemBase itemBase;
+  final int clientId;
+  final ItemBase itemBase;
+  bool sent;
   String _photo;
-  String conformidade;
+  String _conformidade;
+  String comment;
   int photoVersion;
 
-  String path;
+  Ponto ponto;
+  Visita visita;
 
-  Item({int clientId, ItemBase itemBase}) {
-    this.itemBase = itemBase;
-    this.conformidade = 'NO';
-    photoVersion = 0;
-    this.clientId = clientId;
+  Item({
+    this.clientId,
+    this.sent: false,
+    this.comment,
+    this.photoVersion: 0,
+    this.itemBase,
+    this.ponto,
+    this.visita,
+    String conformidade,
+    String photo,
+  }) {
+    if (photo != null) {
+      _photo = photo;
+    }
+    conformidade == null ? _conformidade = 'NO' : _conformidade = conformidade;
   }
 
-  set photo(String path) {
-    _photo = path;
+  void setConformidade(Session session, String confValue) async {
+    List<String> conformidadeList = ['NO', 'C', 'NC'];
+    if (conformidadeList.contains(confValue)) {
+      _conformidade = confValue;
+      /* Salvar path no banco */
+      session.db.transaction((txn) async {
+        await txn.rawInsert(
+            """UPDATE item SET conformidade = ? WHERE clientId = ?""",
+            [confValue, clientId]);
+      });
+    } else {
+      throw ('Conformidade inválida.');
+    }
+  }
+
+  void setFoto(Session session, Uint8List imageBytes) async {
     photoVersion += 1;
+    final directory = await getApplicationDocumentsDirectory();
+    String finalPath =
+        """${directory.path}/visita_${visita.clientId}/${photoFileName()}""";
+    if (_photo != null) {
+      File file = File(_photo);
+      file.delete();
+    }
+    session.db.rawInsert(
+      """UPDATE item SET photo = ?, photoVersion = ? WHERE clientId = ?""",
+      [finalPath, photoVersion, clientId],
+    );
+    _photo = finalPath;
+
+    File(finalPath).writeAsBytes(imageBytes);
   }
 
+  String get conformidade => _conformidade;
   String get photo => _photo;
 
   String photoFileName() {
-    /* Deve ser usado apenas antes de salvar o endereço em 'photo' */
-    int v = photoVersion + 1;
-    return '${clientId.toString()}_${v.toString()}.png';
+    return '${clientId.toString()}_${photoVersion.toString()}.png';
   }
 
   Future<http.StreamedResponse> uploadPhoto(Session session) async {
@@ -288,9 +425,9 @@ class Item {
             id.toString() +
             '/'));
     request.files.add(
-      http.MultipartFile(
-          'photo', File(path).readAsBytes().asStream(), File(path).lengthSync(),
-          filename: path.split("/").last),
+      http.MultipartFile('photo', File(_photo).readAsBytes().asStream(),
+          File(_photo).lengthSync(),
+          filename: _photo.split("/").last),
     );
     request.headers['Authorization'] = 'token ' + session.user.token;
     var res = await request.send();

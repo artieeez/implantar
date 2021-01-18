@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'dart:io';
 
 /* Permissions */
 import 'package:permission_handler/permission_handler.dart';
@@ -25,6 +26,7 @@ class Session {
   Database db;
   User user;
   DataSync dataSync;
+  bool visitaAberta;
 
   Session(this.context);
 
@@ -35,6 +37,7 @@ class Session {
     hasConnection = await _hasConnection();
     user = await _getUser();
     dataSync = await _getDataSync();
+    visitaAberta = await _getVisitaAberta();
   }
 
   void syncInit() async {}
@@ -110,7 +113,9 @@ class Session {
           """CREATE TABLE item(
             clientId AUTO_INCREMENT INTEGER PRIMARY KEY,
             id INTEGER UNIQUE,
+            sent INTEGER DEFAULT 0,
             photo TEXT,
+            photoVersion INTEGER,
             conformidade TEXT DEFAULT 'NO',
             comment TEXT,
             visita_id INTEGER NOT NULL,
@@ -152,5 +157,42 @@ class Session {
     DataSync _newDataSyncInstance = DataSync(context, hasConnection, db, user);
     await _newDataSyncInstance.init();
     return _newDataSyncInstance;
+  }
+
+  Future<bool> _getVisitaAberta() async {
+    print("procurando visita aberta");
+    if (!settings.VISITA_SAFE) {
+      print("Deletando visitas em aberto");
+      List<Map<String, dynamic>> query =
+          await db.rawQuery("""SELECT * FROM visita""");
+      for (int i = 0; i < query.length; i++) {
+        if (query[i]['signature'] != null) {
+          File(query[i]['signature']).delete();
+        }
+      }
+      List<Map<String, dynamic>> queryItem =
+          await db.rawQuery("""SELECT * FROM item""");
+      for (int i = 0; i < queryItem.length; i++) {
+        if (queryItem[i]['photo'] != null) {
+          File(queryItem[i]['photo']).delete();
+        }
+      }
+      await db.rawDelete("""DELETE FROM visita""");
+      await db.rawDelete("""DELETE FROM item""");
+      return false;
+    } else {
+      /* Verifica a existência de visita não concluída */
+      List<Map<String, dynamic>> queryResult = await db.rawQuery("""
+      SELECT * FROM visita WHERE (concluded = ? OR concluded IS NULL)""", [0]);
+      print(queryResult);
+      if (queryResult.length == 1) {
+        return true;
+      } else if (queryResult.length > 1) {
+        throw ("Mais de uma visita em aberto.");
+        // TODO handle this
+      } else {
+        return false;
+      }
+    }
   }
 }

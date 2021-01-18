@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
@@ -101,6 +102,8 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
             }
             /* Caso arquivo exista, acrescente nova versao */
             if (await File(_path + _fileName).exists()) {
+              // TODO remover esse if.
+              print(">> ARQUIVO REPETIDO RESOLVER ISSO!");
               int v = item.photoVersion + 1;
               _fileName =
                   'item_${item.clientId.toString()}_${v.toString()}.png';
@@ -125,9 +128,11 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
               ),
             );
             if (picTaken) {
-              Navigator.pop(context, path);
+              Uint8List photoBytes = await File(path).readAsBytes();
+              File(path).delete();
+              Navigator.pop(context, photoBytes);
             } else {
-              /* Caso a foto tirada não seja aceita, excluir. */
+              /* Caso a foto tirada não seja aceita, apenas excluir. */
               File(path).delete();
             }
           } catch (e) {
