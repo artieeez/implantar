@@ -27,9 +27,11 @@ SECRET_KEY = '&(m1j89b@dk*ghrgf%hq^!_!7f_l9r%x1=azz0086-%l2)9&8m'
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    '127.0.0.1',
-    '192.168.0.10'
+    '192.168.0.10',
+    'localhost',
+    'imp-dev-django',
     ]
+
 
 
 # Application definition
@@ -83,8 +85,12 @@ WSGI_APPLICATION = 'implantar_backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'PASSWORD': 'postgres',
+        'HOST': 'db',
+        'PORT': 5432,
     }
 }
 
@@ -125,9 +131,6 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
-STATIC_URL = '/static/'
-
-MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'implantar_backend')
 
 REST_FRAMEWORK = {
@@ -146,3 +149,10 @@ AVALIADOR_GROUP_NAME = 'avaliador'
 CLIENTE_GROUP_NAME = 'cliente'
 
 DEFAULT_CHARSET = 'utf-8'
+
+
+""" PROXY """
+""" O proxy localiza toda a api atrás da localidade /api """
+USE_X_FORWARDED_HOST = True
+STATIC_URL = '/api/static/'
+MEDIA_URL = '/api/media/'

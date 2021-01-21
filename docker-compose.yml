@@ -1,0 +1,51 @@
+version: "3.9"
+   
+services:
+  reverse-proxy:
+    image: nginx:1.17.10
+    container_name: reverse_proxy_dev
+    depends_on:
+        - db
+        - imp-dev-vue
+        - imp-dev-django
+    volumes:
+      - ./reverse_proxy/nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - "80:80"
+
+  db:
+    image: postgres
+    container_name: imp-dev-postgre
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+
+  imp-dev-django:
+    image: imp-dev-django
+    container_name: imp-dev-django
+    build:
+      context: ./implantar_backend
+      dockerfile: Dockerfile
+    volumes:
+      - ./implantar_backend:/app
+    ports:
+      - "8001:8001"
+    depends_on:
+      - db
+    restart: on-failure
+    
+  imp-dev-vue:
+    image: imp-dev-vue
+    container_name: imp-dev-vue
+    build:
+      context: ./vue_frontend
+      dockerfile: Dockerfile
+    depends_on:
+        - imp-dev-django
+    volumes:
+      - './vue_frontend:/app'
+      - '/app/node_modules'
+    ports:
+      - 8080:8080
+    restart: on-failure
