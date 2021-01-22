@@ -18,6 +18,17 @@
             "host": "localhost",
         },
         {
+          "type": "chrome",
+          "request": "launch",
+          "name": "vuejs: chrome",
+          "url": "http://localhost",
+          "webRoot": "${workspaceFolder}/src",
+          "breakOnLoad": true,
+          "sourceMapPathOverrides": {
+            "webpack:///src/*": "${workspaceFolder}/vue_frontend/src/*"
+          }
+        },
+        {
             "name": "implantar_mobile",
             "cwd": "implantar_mobile",
             "request": "launch",
