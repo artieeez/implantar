@@ -7,6 +7,16 @@ import sys
 def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'implantar_backend.settings')
+
+    # vscode debug
+    from django.conf import settings
+    if settings.DEBUG:
+        if os.environ.get('RUN_MAIN') or os.environ.get('WERKZEUG_RUN_MAIN'):
+            import debugpy
+            debugpy.listen(("0.0.0.0", 3000))
+    # vscode debug end
+
+
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

@@ -5,6 +5,19 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Run Django",
+            "type": "python",
+            "request": "attach",
+            "pathMappings": [
+              {
+                "localRoot": "${workspaceFolder}/implantar_backend",
+                "remoteRoot": "/app"
+              }
+            ],
+            "port": 3000,
+            "host": "localhost",
+        },
+        {
             "name": "implantar_mobile",
             "cwd": "implantar_mobile",
             "request": "launch",
