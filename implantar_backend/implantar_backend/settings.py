@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 from pathlib import Path
 import os
+from corsheaders.defaults import default_headers, default_methods
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,9 +28,7 @@ SECRET_KEY = '&(m1j89b@dk*ghrgf%hq^!_!7f_l9r%x1=azz0086-%l2)9&8m'
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    '192.168.0.10',
-    'localhost',
-    'imp-dev-django',
+        '*'
     ]
 
 
@@ -47,11 +46,14 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
+    'corsheaders',
+    'rest_framework_simplejwt.token_blacklist',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -141,6 +143,7 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
 }
@@ -156,3 +159,17 @@ DEFAULT_CHARSET = 'utf-8'
 USE_X_FORWARDED_HOST = True
 STATIC_URL = '/api/static/'
 MEDIA_URL = '/api/media/'
+
+
+""" CORS """
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost",
+    "http://127.0.0.1",
+    "http://vue-auth-frontend",
+]
+# allow all requests containing any of the default headers(as in django docs) or content-type header
+CORS_ALLOW_HEADERS = default_headers + (
+    'contenttype',
+)
+CORS_ALLOW_METHODS = list(default_methods)
+# CORS_ORIGIN_ALLOW_ALL = True
