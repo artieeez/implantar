@@ -1,0 +1,26 @@
+// Define variable defaults
+$body-bg: rgb(236, 232, 232);
+
+// Tema Implantar
+$verde: #acc99b;
+$verde-dark: #8faa7e;
+$amarelo: #ffcb49;
+$amarelo-dark: #efad29;
+$laranja: #f88e4d;
+$laranja-dark: #e07438;
+$lilaz: #b2a0cd;
+$lilaz-dark: #896fb2;
+
+$yiq-contrasted-threshold: 195;
+$yiq-text-light: white;
+$primary: $lilaz-dark;
+$success: $verde;
+$warning: $amarelo;
+$danger: $laranja-dark;
+
+
+
+
+// Then import Bootstrap an BootstrapVue SCSS files (order is important)
+@import 'node_modules/bootstrap/scss/bootstrap.scss';
+@import 'node_modules/bootstrap-vue/src/index.scss';

@@ -166,6 +166,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost",
     "http://127.0.0.1",
     "http://vue-auth-frontend",
+    "http://192.168.0.10"
 ]
 # allow all requests containing any of the default headers(as in django docs) or content-type header
 CORS_ALLOW_HEADERS = default_headers + (

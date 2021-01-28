@@ -1,6 +1,9 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Home from '../views/Home.vue'
+import Painel from '../views/Painel.vue'
+import Checklists from '../views/Checklists.vue'
+import Redes from '../views/Redes.vue'
+import Cadastros from '../views/Cadastros.vue'
 import Login from '../views/Login.vue'
 import Logout from '../views/Logout'
 
@@ -9,8 +12,35 @@ Vue.use(VueRouter)
 const routes = [
   {
     path: '/',
-    name: 'home',
-    component: Home
+    name: 'painel',
+    component: Painel,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/checklists',
+    name: 'checklists',
+    component: Checklists,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/redes',
+    name: 'redes',
+    component: Redes,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/cadastros',
+    name: 'cadastros',
+    component: Cadastros,
+    meta: {
+      requiresAuth: true
+    }
   },
   {
     path: '/login',

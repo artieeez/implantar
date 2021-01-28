@@ -31,7 +31,7 @@ router.beforeEach((to, from, next) => {
     // then check if the user is logged in; if true continue to home page else continue routing to the destination path
     // this comes to play if the user is logged in and tries to access the login/register page
     if (store.getters.loggedIn) {
-      next({ name: 'home' })
+      next({ name: 'painel' })
     } else {
       next()
     }

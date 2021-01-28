@@ -1,14 +1,14 @@
 <template>
 <div>
-  <b-navbar toggleable="lg" type="dark" variant="info">
-    <b-navbar-brand href="#">Implantar</b-navbar-brand>
+  <b-navbar toggleable="lg" type="dark" variant="primary">
+    <b-navbar-brand href="/">Implantar</b-navbar-brand>
 
     <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
 
     <b-collapse id="nav-collapse" is-nav>
       <b-navbar-nav>
-        <b-nav-item :to='{ name:"login" }' v-if="accessToken==null">LOGIN</b-nav-item>
-        <b-nav-item :to="{ name:'home' }" exact>HOME</b-nav-item>
+        <b-nav-item :to='{ name:"painel" }' v-if="accessToken!=null">Painel</b-nav-item>
+        <b-nav-item :to="{ name:'sobre' }" exact>Sobre</b-nav-item>
       </b-navbar-nav>
 
       <!-- Right aligned nav items -->
