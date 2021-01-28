@@ -41,8 +41,10 @@ services:
     build:
       context: ./vue_frontend
       dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
     depends_on:
-        - imp-dev-django
+      - imp-dev-django
     volumes:
       - './vue_frontend:/app'
       - '/app/node_modules'

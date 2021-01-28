@@ -9,11 +9,6 @@ body {
     margin: 0;
     padding: 0;
     width: 100%;
+    background-color: rgb(236, 232, 232);
   }
-#app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-}
 </style>

@@ -1,11 +1,29 @@
 <template>
-  <div class="nav-bar">
-    <ul>
-      <li v-if="accessToken==null"><router-link :to = "{ name:'login' }">LOGIN</router-link></li>
-      <li v-if="accessToken!=null"><router-link :to = "{ name:'logout' }">LOGOUT</router-link></li>
-      <li><router-link :to = "{ name:'home' }" exact>HOME</router-link></li>
-    </ul>
-  </div>
+<div>
+  <b-navbar toggleable="lg" type="dark" variant="info">
+    <b-navbar-brand href="#">Implantar</b-navbar-brand>
+
+    <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
+
+    <b-collapse id="nav-collapse" is-nav>
+      <b-navbar-nav>
+        <b-nav-item :to='{ name:"login" }' v-if="accessToken==null">LOGIN</b-nav-item>
+        <b-nav-item :to="{ name:'home' }" exact>HOME</b-nav-item>
+      </b-navbar-nav>
+
+      <!-- Right aligned nav items -->
+      <b-navbar-nav class="ml-auto" v-if="accessToken!=null">
+        <b-nav-item-dropdown right>
+          <!-- Using 'button-content' slot -->
+          <template #button-content>
+            <em>User</em>
+          </template>
+          <b-dropdown-item :to="{ name:'logout' }" v-if="accessToken!=null">Sair</b-dropdown-item>
+        </b-nav-item-dropdown>
+      </b-navbar-nav>
+    </b-collapse>
+  </b-navbar>
+</div>
 </template>
 
 <script>
@@ -17,46 +35,4 @@
 </script>
 
 <style scoped>
-  @import url(https://fonts.googleapis.com/css?family=Quicksand);
-  .nav-bar {
-    background-color: #2f3033;
-    width: 100%;
-    position: fixed;
-    top: 0;
-    left: 0;
-    overflow: hidden;
-  }
-  .nav-bar ul {
-    list-style: none;
-    margin:0 14%;
-    padding: 0;
-    text-align: center;
-    color: white;
-  }
-  .nav-bar ul li {
-    display: inline-block;
-    margin: 0 5px;
-    padding: 25px;
-    float: right;
-  }
-  .nav-bar:after {
-    content: '';
-    display: block;
-    clear: both;
-  }
-  .nav-bar ul li a {
-    text-decoration: none;
-    font-family: 'Quicksand', sans-serif;
-    font-size: 22px;
-    font-weight: bold;
-    color: white;
-    padding: 10px;
-    border-radius: 7px;
-  }
-  .nav-bar ul li a:hover {
-    background-color: #a72a64;
-  }
-  .router-link-active {
-    background-color: #a72a64
-  }
 </style>

@@ -1,16 +1,43 @@
 <template>
-  <div class="login-form">
+  <div>
     <NavBar></NavBar>
-    <div class="lg">
-      <h2 v-if="wrongCred">Wrong credentials entered!. Please enter your correct details.</h2>
-      <form v-on:submit.prevent="loginUser">
-        <label for="user">Username</label>
-        <input type="text" name="username" id="user" v-model="username">
-        <label for="pass">Password</label>
-        <input type="password" name="password" id="pass" v-model="password">
-        <button type="submit">Login</button>
-      </form>
-    </div>
+    <b-container class='loginContainer'>
+      <b-row align-h="center">
+        <b-alert class='wrongCred' v-model="wrongCred" variant="danger" dismissible>
+          Houve um problema ao autenticar! Por favor, tente novamente.
+        </b-alert>
+        <b-col  sm='12' md='8'>
+          <b-form @submit.prevent="loginUser" class='loginCol'>
+            <b-form-group
+              id="input-group-1"
+              label="Login:"
+              label-for="user"
+            >
+              <b-form-input
+                id="user"
+                name='username'
+                v-model="username"
+                type="text"
+                placeholder="Enter email"
+                required
+              ></b-form-input>
+            </b-form-group>
+
+            <b-form-group id="input-group-2" label="Senha:" label-for="pass">
+              <b-form-input
+                id="pass"
+                name='password'
+                v-model="password"
+                type='password'
+                placeholder="Enter name"
+                required
+              ></b-form-input>
+            </b-form-group>
+            <b-button type="submit" variant="primary">Login</b-button>
+          </b-form>
+        </b-col>
+      </b-row>
+    </b-container>
   </div>
 </template>
 
@@ -48,17 +75,17 @@
 </script>
 
 <style scoped>
-  @import url(https://fonts.googleapis.com/css?family=Quicksand) ;
-  .login-form {
-    margin: 0;
-    padding: 0;
-  }
-  .lg {
-    background-color: #606366;
-    text-align: center;
-    color: white;
-    font-family: 'Quicksand', sans-serif;
-    padding: 0;
-    margin: 78px 0;
-  }
+.loginContainer {
+  padding-top: 20vh;
+}
+.loginCol {
+  background-color: white;
+  padding: 30px 20px 30px 20px;
+  border-radius: 8px;
+  box-shadow: 2px 5px 5px 0px #d4d4d4;
+}
+.wrongCred {
+  position: absolute;
+  top: 80px;
+}
 </style>
