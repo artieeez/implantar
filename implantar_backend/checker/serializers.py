@@ -118,7 +118,6 @@ class ItemSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
-        print(validated_data)
         _visita = Visita.objects.get(pk=validated_data['visita_id'])
         _itemBase = ItemBase.objects.get(pk=validated_data['itemBase_id'])
         i = Item.objects.create(

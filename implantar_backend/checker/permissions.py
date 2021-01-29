@@ -46,8 +46,11 @@ class HasRegisterToken(permissions.BasePermission):
             return True
         registerToken = request.query_params.get('register-token', None)
         if registerToken is not None:
-            exists = RegisterToken.objects.filter(token=registerToken).exists()
-            return exists
+            try:
+                tk = RegisterToken.objects.get(token=registerToken)
+                return tk.is_valid()
+            except:
+                return False
         return False
 
 

@@ -318,7 +318,6 @@ class VisitasMixin:
     @action(detail=True, methods=['get'])
     def visitas(self, request, pk, format=None):
         if request.method == 'GET':
-            print(request.headers)
             self.serializer_class = VisitaSerializer
             queryset = Ponto.objects.get(id=pk).visitas.filter(in_trash=False)
             page = self.paginate_queryset(queryset)

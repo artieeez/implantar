@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import models
 from datetime import date, datetime
+from django.utils import timezone
 from django.contrib.auth.models import Group
 import os
 import secrets
@@ -32,8 +33,8 @@ class RegisterToken(models.Model):
     t_created = models.DateTimeField(auto_now_add=True)
 
     def is_valid(self):
-        delta = datetime.datetime.today - self.t_created
-        return delta.hours < settings.REGISTER_TOKEN_LIFE
+        delta = timezone.now() - self.t_created
+        return (delta.seconds//3600) < settings.REGISTER_TOKEN_LIFE
 
     def save(self, *args, **kwargs):
         if not self.pk:
