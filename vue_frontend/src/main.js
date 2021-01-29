@@ -24,7 +24,11 @@ router.beforeEach((to, from, next) => {
     if (!store.getters.loggedIn) {
       next({ name: 'login' })
     } else {
-      next()
+      if (to.matched.some(record => record.meta.requiresPermission)) {
+        // CHECAR PERMISSÕES
+      } else {
+        next()
+      }
     }
   } else if (to.matched.some(record => record.meta.requiresLogged)) {
     // else if any of the routes in ./router.js has a meta named 'requiresLogged: true'

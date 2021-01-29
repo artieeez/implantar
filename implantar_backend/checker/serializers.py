@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from checker.models import Pessoa, Rede, Ponto, Visita, Item, ItemBase, Profile
+from checker.models import *
 from django.contrib.auth.models import User, Group
 from rest_framework.reverse import reverse
 from django.conf import settings
@@ -18,69 +18,43 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = ['display_name']
 
 
-class ClienteCreateSerializer(serializers.ModelSerializer):
+class UserCreateSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer()
+    group = serializers.CharField(required=True)
 
     class Meta:
         model = User
-        fields = ['username', 'password', 'email', 'profile']
+        fields = ['username', 'password', 'email', 'profile', 'group']
 
     def create(self, validated_data):
         user = User(
             email=validated_data['email'],
-            username=validated_data['username']
+            username=validated_data['username'],
         )
         user.set_password(validated_data['password'])
         user.save()
-        try:
-            group = Group.objects.get(name=settings.CLIENTE_GROUP_NAME)
-            group.user_set.add(user)
-        except:
-            print("Err - Crie o grupo de clientes.")
+        group = Group.objects.get(name=validated_data['group'])
+        group.user_set.add(user)
         profile_data = validated_data.pop('profile')
         Profile.objects.create(user=user, **profile_data)
         return user
 
 
-class AvaliadorCreateSerializer(serializers.ModelSerializer):
-    profile = ProfileSerializer()
-
-    class Meta:
-        model = User
-        fields = ['username', 'password', 'email', 'profile']
-
-    def create(self, validated_data):
-        user = User(
-            email=validated_data['email'],
-            username=validated_data['username']
-        )
-        user.set_password(validated_data['password'])
-        user.save()
-        try:
-            group = Group.objects.get(name=settings.AVALIADOR_GROUP_NAME)
-            group.user_set.add(user)
-        except:
-            print("Err - Crie o grupo de avaliadores.")
-        profile_data = validated_data.pop('profile')
-        Profile.objects.create(user=user, **profile_data)
-        return user
-
-
-class AvaliadorPasswordSerializer(serializers.Serializer):
+class UserPasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(write_only=True)
     new_password = serializers.CharField(write_only=True)
 
     model = User
 
 
-class AvaliadorUsernameSerializer(serializers.Serializer):
+class UserUsernameSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True)
     username = serializers.CharField(write_only=True)
 
     model = User
 
 
-class AvaliadorSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer()
 
     class Meta:
@@ -91,12 +65,30 @@ class AvaliadorSerializer(serializers.ModelSerializer):
         }
 
 
-class PessoaSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Pessoa
-        fields = ['url', 'id', 'nome', 'telefone', 'celular', 'email',
-            't_created', 't_modified']
+class RegisterTokenSerializer(serializers.ModelSerializer):
+    responsavel = UserSerializer(read_only=True)
+    idade = serializers.SerializerMethodField()
 
+    class Meta:
+        model = RegisterToken
+        fields = ['id', 'idade', 'token', 'group', 'rede', 'responsavel']
+        extra_kwargs = {
+            'token': {'read_only': True},
+            'idade': {'read_only': True},
+        }
+
+    def create(self, validated_data):
+        token = RegisterToken.objects.create(
+            group=validated_data['group'],
+            rede=validated_data['rede'],
+            responsavel = self.context['request'].user
+        )
+        return token
+
+    def get_idade(self, obj):
+        idade = timezone.now() - obj.t_created
+        return idade.seconds//3600 # Horas
+    
 
 class ItemBaseSerializer(serializers.ModelSerializer):
     class Meta:
@@ -151,7 +143,7 @@ class ItemSerializer(serializers.ModelSerializer):
 class VisitaSerializer(serializers.HyperlinkedModelSerializer):
     ponto_id = serializers.IntegerField(required=False)
     item_set = ItemSerializer(many=True, required=False)
-    avaliador = AvaliadorSerializer(read_only=True)
+    avaliador = UserSerializer(read_only=True)
 
     class Meta:
         model = Visita
@@ -221,12 +213,11 @@ class PontoSerializer(serializers.HyperlinkedModelSerializer):
 class _BaseRedeSerializer(serializers.HyperlinkedModelSerializer):
     """ pontos = serializers.HyperlinkedRelatedField(many=True, 
         view_name='pontos-list', read_only=True) """
-    cliente = ClienteCreateSerializer()
+    """ cliente = UserCreateSerializer() """
     pontos = PontoSerializer(many=True, read_only=True)
-    contatos = PessoaSerializer(many=True, read_only=True)
 
     def create(self, validated_data):
-        cliente_data = validated_data.pop('cliente')
+        """ cliente_data = validated_data.pop('cliente')
         user = User(
             email=cliente_data['email'],
             username=cliente_data['username']
@@ -239,9 +230,9 @@ class _BaseRedeSerializer(serializers.HyperlinkedModelSerializer):
         except:
             print("Err - Crie o grupo de clientes.")
         profile_data = cliente_data.pop('profile')
-        Profile.objects.create(user=user, **profile_data)
+        Profile.objects.create(user=user, **profile_data) """
 
-        return Rede.objects.create(cliente=user, **validated_data)
+        return Rede.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
         instance.nome = validated_data.get('nome', instance.nome)
@@ -253,13 +244,13 @@ class RedeSerializer(_BaseRedeSerializer):
     class Meta:
         model = Rede
         fields = ['url', 'id', 'nome', 'photo', 'pontos', 'contatos',
-            't_created', 't_modified', 'cliente']
+            't_created', 't_modified']
 
 class TrashRedeSerializer(_BaseRedeSerializer):
     class Meta:
         model = Rede
         fields = ['url', 'id', 'nome', 'photo', 'pontos', 'contatos',
-            't_created', 't_modified', 'cliente']
+            't_created', 't_modified']
         extra_kwargs = {
             'url': {'view_name': 'trash-rede-detail'},
         }

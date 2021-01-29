@@ -23,7 +23,8 @@ const routes = [
     name: 'checklists',
     component: Checklists,
     meta: {
-      requiresAuth: true
+      requiresAuth: true,
+      requiresPermission: true
     }
   },
   {
@@ -31,7 +32,8 @@ const routes = [
     name: 'redes',
     component: Redes,
     meta: {
-      requiresAuth: true
+      requiresAuth: true,
+      requiresPermission: true
     }
   },
   {
@@ -39,7 +41,8 @@ const routes = [
     name: 'cadastros',
     component: Cadastros,
     meta: {
-      requiresAuth: true
+      requiresAuth: true,
+      requiresPermission: true
     }
   },
   {

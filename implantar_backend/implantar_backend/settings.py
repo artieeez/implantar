@@ -139,7 +139,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.IsAdminUser',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
@@ -174,3 +174,14 @@ CORS_ALLOW_HEADERS = default_headers + (
 )
 CORS_ALLOW_METHODS = list(default_methods)
 # CORS_ORIGIN_ALLOW_ALL = True
+
+# Define as classes de usuários.
+CLASSES_DE_USUARIOS = [
+    'operador',
+    'operador_limitado',
+    'representante',
+    'representante_limitado',
+]
+
+# Idade máxima do RegisterToken em horas
+REGISTER_TOKEN_LIFE = 24

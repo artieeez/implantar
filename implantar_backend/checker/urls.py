@@ -5,7 +5,8 @@ from db_version import views as db_version
 
 # Create a router and register our viewsets with it.
 router = DefaultRouter()
-router.register(r'avaliadores', views.AvaliadorViewSet, basename='avaliador')
+router.register(r'users', views.UserViewSet, basename='usuarios')
+router.register(r'register_token', views.RegisterTokenViewSet, basename='register-token')
 router.register(r'redes', views.RedeViewSet, basename='rede')
 router.register(r'trash/redes', views.TrashRedeViewSet, basename='trash-rede')
 router.register(r'pontos', views.PontoViewSet, basename='ponto')
@@ -24,8 +25,9 @@ urlpatterns = [
     path('trash/redes/<int:pk>/restore/', views.TrashRedeViewSet.as_view({'post': 'restore'})),
     path('pontos/<int:pk>/visitas/', views.PontoViewSet.as_view({'get': 'visitas'})),
     path('item_base/active', views.ItemBaseViewSet.as_view({'get': 'active'})),
-    path('avaliadores/<int:pk>/username_reset', views.AvaliadorViewSet.as_view({'put': 'username'})),
-    path('avaliadores/<int:pk>/password_reset', views.AvaliadorViewSet.as_view({'put': 'password'})),
+    path('register_token/is_valid/<str:token>', views.RegisterTokenViewSet.as_view({'get': 'is_valid'})),
+    path('users/<int:pk>/username_reset', views.UserViewSet.as_view({'put': 'username'})),
+    path('users/<int:pk>/password_reset', views.UserViewSet.as_view({'put': 'password'})),
     path("item-photo/<int:pk>/", views.ItemPhotoUpload.as_view(), name="rest_item_photo_upload"),
     path("signature/<int:pk>/", views.SignatureUpload.as_view(), name="rest_signature_upload"),
     path("get_version/", db_version.DbVersionView.as_view()),

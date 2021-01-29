@@ -1,4 +1,5 @@
 from rest_framework import permissions
+from checker.models import RegisterToken
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
     """
@@ -23,10 +24,31 @@ class IsAssigned(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
 		# check if user who launched request is object owner 
-        if obj.assigned_to == request.user: 
+        if request.user.groups.filter(name = 'operador').exists():
             return True
         else:
-            return False
+            if request.user in obj.assigned: 
+                return True
+            else:
+                return False
+
+
+class IsOperador(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if request.user.groups.filter(name = 'operador').exists():
+            return True
+        return False
+
+
+class HasRegisterToken(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if request.user.groups.filter(name = 'operador').exists():
+            return True
+        registerToken = request.query_params.get('register-token', None)
+        if registerToken is not None:
+            exists = RegisterToken.objects.filter(token=registerToken).exists()
+            return exists
+        return False
 
 
 class EoProprioUsuario(permissions.BasePermission):

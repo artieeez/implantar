@@ -1,7 +1,9 @@
 from django.conf import settings
 from django.db import models
-from datetime import date
+from datetime import date, datetime
+from django.contrib.auth.models import Group
 import os
+import secrets
 
 from django.db.models.signals import pre_delete
 from django.dispatch.dispatcher import receiver
@@ -22,34 +24,38 @@ class Profile(models.Model):
     in_trash = models.BooleanField(default=False)
 
 
-class Pessoa(models.Model):
-    nome = models.CharField(verbose_name="nome", max_length=64)
+class RegisterToken(models.Model):
+    token = models.CharField(max_length=255, blank=True)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+    responsavel = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    rede = models.ForeignKey("checker.rede", on_delete=models.CASCADE)
+    t_created = models.DateTimeField(auto_now_add=True)
 
-    """ Contato """
-    telefone = models.CharField(max_length=32, blank=True)
-    celular = models.CharField(max_length=32, blank=True)
-    email = models.EmailField(max_length=64, blank=True)
+    def is_valid(self):
+        delta = datetime.datetime.today - self.t_created
+        return delta.hours < settings.REGISTER_TOKEN_LIFE
 
-    """ Cadastro """
-    t_created = models.DateField(auto_now_add=True)
-    t_modified = models.DateField(auto_now=True)
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            self.token = secrets.token_urlsafe(16)
+        super(RegisterToken, self).save(*args, **kwargs)
 
 
 class Rede(models.Model):
     nome = models.CharField(max_length=64)
     photo = models.ImageField(upload_to='redes/', blank=True)
-    cliente = models.OneToOneField(
+    """ cliente = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        null=True)
+        null=True) """
 
     pontos = models.ManyToManyField(
         'checker.Ponto',
         blank=True,
     )
-    contatos = models.ManyToManyField(
-        'checker.Pessoa',
-        blank=True,
+    assigned_to = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        blank=True
     )
     """ Cadastro """
     t_created = models.DateField(auto_now_add=True)

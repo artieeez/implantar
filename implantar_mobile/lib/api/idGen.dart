@@ -1,6 +1,7 @@
 import 'package:implantar_mobile/services/session.dart';
 import 'package:implantar_mobile/api/models.dart';
 
+// REMOVER JUNTO AO FIELD vCount EM PROFILE
 String visitaIdGenerator(
   Session session, {
   Rede rede,
