@@ -1,27 +1,25 @@
 <template>
-  <div class="loginBg">
-    <div class="loginLogoCon">
-      <img class="loginLogo" :src="require('../assets/logo2.png')" />
-    </div>
-    <b-container class="loginContainer">
+  <div class='bgRoxo'>
+    <LogoRoxo/>
+    <b-container>
       <b-row align-h="center">
         <b-alert
-          class="wrongCred"
-          v-model="wrongCred"
+          class="ErrPop1"
+          v-model="ErrPop1"
           variant="danger"
           dismissible
         >
           Houve um problema com o seu cadastro! Por favor, tente novamente.
         </b-alert>
         <b-alert
-          class="wrongCred"
+          class="ErrPop1"
           v-model="expiredRegisterToken"
           variant="danger"
         >
           Ops! Parece que o seu link de acesso expirou. Peça um novo para um representante.
         </b-alert>
         <b-col sm="12" md="8">
-          <b-form @submit.prevent="registerUser" class="loginCol">
+          <b-form @submit.prevent="registerUser" class="FormCol1">
             <b-form-group
               id="input-group-1"
               label="Nome de usuário:"
@@ -149,10 +147,12 @@
 
 <script>
 import { axiosBase, APIEndpoints } from '../api/axios-base'
+import LogoRoxo from '../components/bg/LogoRoxo.vue'
+
 
 export default {
   name: "Register",
-  components: {},
+  components: {LogoRoxo},
   data() {
     return {
       USERNAME_LENGTH: 6,
@@ -166,7 +166,7 @@ export default {
       lastName: "",
       email: "",
       expiredRegisterToken: false,
-      wrongCred: false,
+      ErrPop1: false,
       wrongRegister: false,
       hidePassword: true,
       err: null,
@@ -252,12 +252,12 @@ export default {
           password: this.password,
         })
             .then(() => {
-              this.wrongCred = false
+              this.ErrPop1 = false
               this.$router.push({ name: 'painel' })
             })
           .catch(err => {
             this.err = err;
-            this.wrongCred = true // if the credentials were wrong set wrongCred to true
+            this.ErrPop1 = true // if the credentials were wrong set ErrPop1 to true
         })
     },
     registerUser() {
@@ -275,7 +275,7 @@ export default {
               if (response.status == 201) {
                 this.loginUser();
               } else {
-                this.wrongCred = true;
+                this.ErrPop1 = true;
               }
             resolve()
           })
@@ -308,38 +308,11 @@ export default {
 </script>
 
 <style scoped>
-.loginLogoCon {
-  display: flex;
-  z-index: 0;
-  width: 100%;
-  justify-content: center;
-}
-.loginLogo {
-  width: 180px;
-}
-.wrongCred {
-  position: absolute;
-  bottom: 20px;
-  z-index: 200;
-}
 @media (min-width: 768px) {
 }
 @media (min-width: 992px) {
 }
 @media (min-width: 1200px) {
-  .loginLogoCon {
-    padding-top: 10vh;
-  }
 }
-.loginCol {
-  background-color: white;
-  padding: 30px 20px 30px 20px;
-  border-radius: 8px;
-  box-shadow: 2px 5px 5px 0px #998baf;
-}
-.loginBg {
-  background-color: #b2a0cd;
-  width: 100vw;
-  height: 100vh;
-}
+
 </style>

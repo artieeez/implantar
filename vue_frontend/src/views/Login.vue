@@ -1,15 +1,13 @@
 <template>
-  <div class='loginBg'>
-    <div class='loginLogoCon'>
-      <img class='loginLogo' :src="require('../assets/logo2.png')"/>
-    </div>
+  <div class='bgRoxo'>
+    <LogoRoxo/>
     <b-container class='loginContainer'>
       <b-row align-h="center">
-        <b-alert class='wrongCred' v-model="wrongCred" variant="danger" dismissible>
+        <b-alert class='ErrPop1' v-model="ErrPop1" variant="danger" dismissible>
           Houve um problema ao autenticar! Por favor, tente novamente. {{ err }}
         </b-alert>
         <b-col  sm='12' md='8'>
-          <b-form @submit.prevent="loginUser" class='loginCol'>
+          <b-form @submit.prevent="loginUser" class='FormCol1'>
             <b-form-group
               id="input-group-1"
               label="Login:"
@@ -55,15 +53,18 @@
 </template>
 
 <script>
+  import LogoRoxo from '../components/bg/LogoRoxo.vue'
+
   export default {
     name: 'Login',
     components: {
+      LogoRoxo
     },
     data () {
       return {
         username: '',
         password: '',
-        wrongCred: false, // activates appropriate message if set to true
+        ErrPop1: false, // activates appropriate message if set to true
         hidePassword: true,
         err: null,
       }
@@ -75,13 +76,13 @@
           password: this.password,
         })
             .then(() => {
-              this.wrongCred = false
+              this.ErrPop1 = false
               this.$router.push({ name: 'painel' })
             })
           .catch(err => {
             console.log(err)
             this.err = err;
-            this.wrongCred = true // if the credentials were wrong set wrongCred to true
+            this.ErrPop1 = true // if the credentials were wrong set ErrPop1 to true
           })
         }
       }
@@ -89,38 +90,10 @@
 </script>
 
 <style scoped>
-.loginLogoCon {
-  display: flex;
-  z-index: 0;
-  width: 100%;
-  justify-content: center;
-}
-.loginLogo {
-  width: 180px;
-}
-.wrongCred {
-  position: absolute;
-  bottom: 20px;
-  z-index: 200;
-}
 @media (min-width: 768px) {
 }
 @media (min-width: 992px) {
 }
 @media (min-width: 1200px) {
-  .loginLogoCon {
-    padding-top: 10vh;
-  } 
-}
-.loginCol {
-  background-color: white;
-  padding: 30px 20px 30px 20px;
-  border-radius: 8px;
-  box-shadow: 2px 5px 5px 0px #998baf;
-}
-.loginBg {
-  background-color: #b2a0cd;
-  width: 100vw;
-  height: 100vh;
 }
 </style>

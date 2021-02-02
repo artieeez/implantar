@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class='painelBg'>
     <NavBar></NavBar>
     <b-container>
         <b-row class='painelRow'>
@@ -68,4 +68,12 @@
         margin: 10px 0 10px 0;
     }
 }
+.painelBg {
+    margin: 0;
+    padding: 0;
+    background-color: whitesmoke;
+    width: 100vw;
+    min-height: 100vh;
+    height: 100%;
+  }
 </style>
