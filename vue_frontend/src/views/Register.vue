@@ -160,6 +160,7 @@ export default {
       FIRSTNAME_LENGTH: 2,
       LASTNAME_LENGTH: 2,
       username: "",
+      username_in_use: false,
       password: "",
       passwordConfirm: "",
       firstName: "",
@@ -184,11 +185,18 @@ export default {
     },
     invalidUsername() {
         if (this.username == '') {
-            return null
+          return null
+        } else if (this.username.length < this.USERNAME_LENGTH) {
+          return false
+        } else {
+          this.is_username_in_use(); // Altera is_username_in_use de forma async
+          return !this.username_in_use;
         }
-        return this.username.length >= this.USERNAME_LENGTH;
     },
     invalidUsernameFeedback() {
+      if (this.username_in_use) {
+        return `Nome de usuário indisponível`;
+      }
       return `O nome de usuário deve conter pelo menos ${this.USERNAME_LENGTH} 
       caracteres.`;
     },
@@ -291,17 +299,41 @@ export default {
                 this.registerToken, {
             })
             .then(response => {
-                if (response.data.code == "200") {
+                if (response.status == "200") {
                     this.expiredRegisterToken = false;
                     resolve(true);
-                } else
-                this.expiredRegisterToken = true;
-                resolve(false);
+                } else {
+                  this.expiredRegisterToken = true;
+                  resolve(false);
+                }
             })
             .catch(err => {
+                this.expiredRegisterToken = true;
                 reject(err) // error generating new access and refresh token because refresh token has expired
             })
         })
+    },
+    is_username_in_use() {
+        // Altera is_username_in_use de forma async
+        let username = this.username;
+            axiosBase.get(
+                APIEndpoints.is_username_in_use + '/' +
+                username + '?register-token=' + this.registerToken, {
+            })
+            .then(response => {
+                console.log(response);
+                if (response.status == "204") {
+                  this.username_in_use = false;
+                  return true;
+                } else {
+                  this.username_in_use = true;
+                  return false;
+                }
+            })
+            .catch(() => {
+                this.username_in_use = true;
+                return false // error generating new access and refresh token because refresh token has expired
+            })
     },
   },
 };

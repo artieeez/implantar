@@ -53,20 +53,16 @@ class RegisterTokenViewSet(viewsets.ModelViewSet):
                 if not token.is_valid():
                     assert()
                 response = {
-                    'status': 'OK',
-                    'code': status.HTTP_200_OK,
                     'message': 'Código válido.',
                     'data': []
                 }
-                return Response(response)
+                return Response(response, status=status.HTTP_200_OK)
             except:
                 response = {
-                    'status': 'NOT_FOUND',
-                    'code': status.HTTP_404_NOT_FOUND,
                     'message': 'Código inválido',
                     'data': []
                 }
-                return Response(response)
+                return Response(response, status=status.HTTP_404_NOT_FOUND)
 
     def get_permissions(self):
         if self.request.method == 'GET' and self.action == 'verify':
@@ -136,6 +132,30 @@ class UserViewSet(viewsets.ModelViewSet):
             }
             return Response(response, status=status.HTTP_200_OK,)
 
+    @action(detail=True, methods=['get'])
+    def is_username_in_use(self, request, username, format=None):
+        if request.method == 'GET':
+            try:
+                user = User.objects.filter(username=username).exists()
+                if user:
+                    response = {
+                        'message': 'username indisponível.',
+                        'data': []
+                    }
+                    return Response(response, status=status.HTTP_200_OK)
+                else:
+                    response = {
+                        'message': 'username disponível.',
+                        'data': []
+                    }
+                    return Response(response, status=status.HTTP_204_NO_CONTENT)
+            except:
+                response = {
+                    'message': 'Erro',
+                    'data': []
+                }
+                return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     def get_serializer_class(self):
         serializer_class = self.serializer_class
 
@@ -157,6 +177,8 @@ class UserViewSet(viewsets.ModelViewSet):
         if self.action == 'my_profile':
             permission_classes = [IsAuthenticated]
         if self.request.method == 'POST':
+            permission_classes = [HasRegisterToken]
+        if self.action == 'is_username_in_use':
             permission_classes = [HasRegisterToken]
         return [permission() for permission in permission_classes]
 

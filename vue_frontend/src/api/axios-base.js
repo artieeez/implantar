@@ -4,6 +4,7 @@ const APIUrl = 'http://192.168.0.10/api'
 
 const APIEndpoints = {
   verifyRegisterToken: '/register_token/verify',
+  is_username_in_use: '/users/is_username_in_use',
 }
 
 const axiosBase = axios.create({

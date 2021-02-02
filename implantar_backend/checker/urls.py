@@ -27,6 +27,7 @@ urlpatterns = [
     path('item_base/active', views.ItemBaseViewSet.as_view({'get': 'active'})),
     path('register_token/verify/<str:token>', views.RegisterTokenViewSet.as_view({'get': 'verify'})),
     path('users/my_profile', views.UserViewSet.as_view({'get': 'my_profile'})),
+    path('users/is_username_in_use/<str:username>', views.UserViewSet.as_view({'get': 'is_username_in_use'})),
     path('users/<int:pk>/username_reset', views.UserViewSet.as_view({'put': 'username'})),
     path('users/<int:pk>/password_reset', views.UserViewSet.as_view({'put': 'password'})),
     path("item-photo/<int:pk>/", views.ItemPhotoUpload.as_view(), name="rest_item_photo_upload"),
