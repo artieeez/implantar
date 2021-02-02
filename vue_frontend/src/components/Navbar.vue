@@ -16,7 +16,7 @@
         <b-nav-item-dropdown right>
           <!-- Using 'button-content' slot -->
           <template #button-content>
-            <em>User</em>
+            <em>{{ getUserProfile != null ? getUserProfile.first_name : 'Usuário' }} </em>
           </template>
           <b-dropdown-item :to="{ name:'logout' }" v-if="accessToken!=null">Sair</b-dropdown-item>
         </b-nav-item-dropdown>
@@ -27,10 +27,12 @@
 </template>
 
 <script>
-  import { mapState } from 'vuex'
+  import { mapGetters } from 'vuex'
   export default {
     name: 'NavBar',
-    computed: mapState(['accessToken'])
+    computed: {
+      ...mapGetters(['accessToken', 'getUserProfile']),
+    }
   }
 </script>
 

@@ -122,6 +122,20 @@ class UserViewSet(viewsets.ModelViewSet):
                 return Response(response)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=False, methods=['get'])
+    def my_profile(self, request, format=None):
+        if request.method == 'GET':
+            user = request.user
+            groups = []
+            for row in user.groups.all():
+                groups.append(row.name)
+            response = {
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'groups': groups,
+            }
+            return Response(response, status=status.HTTP_200_OK,)
+
     def get_serializer_class(self):
         serializer_class = self.serializer_class
 
@@ -137,22 +151,13 @@ class UserViewSet(viewsets.ModelViewSet):
         return serializer_class
 
     def get_permissions(self):
-        if self.detail and self.request.method == 'GET':
-            permission_classes = [IsAuthenticated]
-        else:
-            permission_classes = [IsAuthenticated, EoProprioUsuario]
+        permission_classes = [IsAuthenticated, EoProprioUsuario]
         if self.action in ('password', 'username'):
             permission_classes = [EoProprioUsuario]
+        if self.action == 'my_profile':
+            permission_classes = [IsAuthenticated]
         if self.request.method == 'POST':
             permission_classes = [HasRegisterToken]
-        """ if self.request.method == 'DELETE':
-            permission_classes = [IsAdminUser]
-        elif self.request.method == 'POST':
-            permission_classes = [IsAuthenticated]
-        else:
-            permission_classes = [IsAuthenticated] """
-        # TODO
-        """ return [IsStaffOrTargetUser()] """
         return [permission() for permission in permission_classes]
 
 

@@ -9,21 +9,27 @@ export default new Vuex.Store({
     accessToken: localStorage.getItem('access_token') || null, // makes sure the user is logged in even after
     // refreshing the page
     refreshToken: localStorage.getItem('refresh_token') || null,
-    profile: localStorage.getItem('profile') || null,
     register_token: () => {
       var url_string = window.location.href; //window.location.href
       var url = new URL(url_string);
       var c = url.searchParams.get("register-token");
       return c},
     loading: false,
-    APIData: '' // received data from the backend API is stored here.
+    userProfile: JSON.parse(localStorage.getItem('user_profile')) || null,
   },
   getters: {
     loggedIn (state) {
+      // TODO incluir user
       return state.accessToken != null
     },
     hasRegisterToken (state) {
       return state.register_token() != null
+    },
+    accessToken (state) {
+      return state.accessToken;
+    },
+    getUserProfile (state) {
+      return state.userProfile;
     }
   },
   mutations: {
@@ -40,6 +46,13 @@ export default new Vuex.Store({
       state.accessToken = null
       state.refreshToken = null
     },
+    updateUserProfile (state,{userProfile}) {
+      state.userProfile = userProfile;
+      localStorage.setItem('user_profile', JSON.stringify(userProfile))
+    },
+    destroyUserProfile (state) {
+      state.userProfile = null
+    }
   },
   actions: {
     // run the below action to get a new access token on expiration
@@ -66,11 +79,13 @@ export default new Vuex.Store({
             .then(() => {
               localStorage.removeItem('access_token')
               localStorage.removeItem('refresh_token')
+              localStorage.removeItem('user_profile')
               context.commit('destroyToken')
             })
             .catch(err => {
               localStorage.removeItem('access_token')
               localStorage.removeItem('refresh_token')
+              localStorage.removeItem('user_profile')
               context.commit('destroyToken')
               resolve(err)
             })
@@ -87,6 +102,24 @@ export default new Vuex.Store({
         // if successful update local storage:
           .then(response => {
             context.commit('updateLocalStorage', { access: response.data.access, refresh: response.data.refresh }) // store the access and refresh token in localstorage
+            context.dispatch('fetchUserProfile').then(() => {
+              resolve()
+            })
+          })
+          .catch(err => {
+            reject(err)
+          })
+      })
+    },
+    fetchUserProfile (context) {
+      return new Promise((resolve, reject) => {
+        // send the username and password to the backend API:
+        axiosBase.get('/users/my_profile', {
+          headers: { Authorization: `Bearer ${context.state.accessToken}` },
+        })
+        // if successful update local storage:
+          .then(response => {
+            context.commit('updateUserProfile', {userProfile: response.data}) // store the access and refresh token in localstorage
             resolve()
           })
           .catch(err => {
