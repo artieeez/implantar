@@ -1,5 +1,5 @@
 from django.contrib import admin
-from checker.models import Rede, Ponto, Visita, ItemBase, Categoria, Item
+from checker.models import Rede, Ponto, Visita, ItemBase, Categoria, Item, Profile
 
 # Register your models here.
 admin.site.register(Rede)
@@ -8,5 +8,7 @@ admin.site.register(Visita)
 admin.site.register(Item)
 admin.site.register(ItemBase)
 admin.site.register(Categoria)
+admin.site.register(Profile)
+
 
 

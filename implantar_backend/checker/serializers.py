@@ -15,28 +15,29 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ['display_name']
+        fields = []
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
-    profile = ProfileSerializer()
-    group = serializers.CharField(required=True)
 
     class Meta:
         model = User
-        fields = ['username', 'password', 'email', 'profile', 'group']
+        fields = ['username', 'password', 'first_name', 'last_name', 'email']
 
     def create(self, validated_data):
+        str_registerToken = self.context['request'].query_params.get('register-token', None)
+        registerToken = RegisterToken.objects.get(token=str_registerToken)
         user = User(
-            email=validated_data['email'],
             username=validated_data['username'],
+            first_name=validated_data['first_name'],
+            last_name=validated_data['last_name'],
+            email=validated_data['email'],
         )
         user.set_password(validated_data['password'])
         user.save()
-        group = Group.objects.get(name=validated_data['group'])
+        group = registerToken.group
         group.user_set.add(user)
-        profile_data = validated_data.pop('profile')
-        Profile.objects.create(user=user, **profile_data)
+        Profile.objects.create(user=user)
         return user
 
 
@@ -59,7 +60,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'profile']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'profile']
         extra_kwargs = {
             'username': {'read_only': True},
         }

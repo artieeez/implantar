@@ -1,6 +1,8 @@
 <template>
-  <div>
-    <NavBar></NavBar>
+  <div class='loginBg'>
+    <div class='loginLogoCon'>
+      <img class='loginLogo' :src="require('../assets/logo2.png')"/>
+    </div>
     <b-container class='loginContainer'>
       <b-row align-h="center">
         <b-alert class='wrongCred' v-model="wrongCred" variant="danger" dismissible>
@@ -53,11 +55,9 @@
 </template>
 
 <script>
-  import NavBar from '../components/Navbar'
   export default {
     name: 'Login',
     components: {
-      NavBar
     },
     data () {
       return {
@@ -89,24 +89,38 @@
 </script>
 
 <style scoped>
-.loginContainer {
-  padding-top: 10vh;
+.loginLogoCon {
+  display: flex;
+  z-index: 0;
+  width: 100%;
+  justify-content: center;
+}
+.loginLogo {
+  width: 180px;
 }
 .wrongCred {
   position: absolute;
   bottom: 20px;
   z-index: 200;
 }
-@media (min-width: 768px) { 
-  .loginContainer {
-    padding-top: 20vh;
-  }
+@media (min-width: 768px) {
+}
+@media (min-width: 992px) {
+}
+@media (min-width: 1200px) {
+  .loginLogoCon {
+    padding-top: 10vh;
+  } 
 }
 .loginCol {
   background-color: white;
   padding: 30px 20px 30px 20px;
   border-radius: 8px;
-  box-shadow: 2px 5px 5px 0px #d4d4d4;
+  box-shadow: 2px 5px 5px 0px #998baf;
 }
-
+.loginBg {
+  background-color: #b2a0cd;
+  width: 100vw;
+  height: 100vh;
+}
 </style>

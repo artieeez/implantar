@@ -5,6 +5,7 @@ import Checklists from '../views/Checklists.vue'
 import Redes from '../views/Redes.vue'
 import Cadastros from '../views/Cadastros.vue'
 import Login from '../views/Login.vue'
+import Register from '../views/Register.vue'
 import Logout from '../views/Logout'
 
 Vue.use(VueRouter)
@@ -51,6 +52,15 @@ const routes = [
     component: Login,
     meta: {
       requiresLogged: true
+    }
+  },
+  {
+    path: '/register',
+    name: 'register',
+    component: Register,
+    meta: {
+      requiresLogged: true,
+      requiresRegisterToken: true,
     }
   },
   {

@@ -133,7 +133,7 @@ class Visita(models.Model):
         return f"""{self.ponto_set.first().rede_set.first().nome}
                 {self.ponto_set.first().nome} 
                 ({self.data.day}/{self.data.month}/{self.data.year})
-                -> {self.avaliador.profile.display_name}"""
+                -> {self.avaliador.first_name + ' ' + self.avaliador.last_name}"""
 
 """ Remove os arquivos da visita ao deletar """
 @receiver(models.signals.pre_delete, sender=Visita)

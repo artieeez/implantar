@@ -37,7 +37,15 @@ router.beforeEach((to, from, next) => {
     if (store.getters.loggedIn) {
       next({ name: 'painel' })
     } else {
-      next()
+      if (to.matched.some(record => record.meta.requiresRegisterToken)) {
+        if (store.getters.hasRegisterToken) {
+          next()
+        } else {
+          next({ name: 'login' })
+        }
+      } else {
+        next()
+      }
     }
   } else {
     next()

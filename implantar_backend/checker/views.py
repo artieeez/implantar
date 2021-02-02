@@ -36,7 +36,7 @@ class CustomAuthToken(ObtainAuthToken):
         return Response({
             'token': token.key,
             'id': user.pk,
-            'display_name': user.profile.display_name,
+            'first_name': user.first_name,
             'vCount': user.profile.vCount
         })
 
@@ -46,10 +46,12 @@ class RegisterTokenViewSet(viewsets.ModelViewSet):
     queryset = RegisterToken.objects.all()
     
     @action(detail=True, methods=['get'])
-    def is_valid(self, request, token, format=None):
+    def verify(self, request, token, format=None):
         if request.method == 'GET':
             try:
                 token = RegisterToken.objects.get(token=token)
+                if not token.is_valid():
+                    assert()
                 response = {
                     'status': 'OK',
                     'code': status.HTTP_200_OK,
@@ -67,7 +69,7 @@ class RegisterTokenViewSet(viewsets.ModelViewSet):
                 return Response(response)
 
     def get_permissions(self):
-        if self.request.method == 'GET' and self.action == 'is_valid':
+        if self.request.method == 'GET' and self.action == 'verify':
             permission_classes = [AllowAny]
         else:
             permission_classes = [IsAuthenticated, IsOperador]

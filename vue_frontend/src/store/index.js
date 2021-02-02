@@ -6,15 +6,24 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
-     accessToken: localStorage.getItem('access_token') || null, // makes sure the user is logged in even after
+    accessToken: localStorage.getItem('access_token') || null, // makes sure the user is logged in even after
     // refreshing the page
-     refreshToken: localStorage.getItem('refresh_token') || null,
-     profile: localStorage.getItem('profile') || null,
-     APIData: '' // received data from the backend API is stored here.
+    refreshToken: localStorage.getItem('refresh_token') || null,
+    profile: localStorage.getItem('profile') || null,
+    register_token: () => {
+      var url_string = window.location.href; //window.location.href
+      var url = new URL(url_string);
+      var c = url.searchParams.get("register-token");
+      return c},
+    loading: false,
+    APIData: '' // received data from the backend API is stored here.
   },
   getters: {
     loggedIn (state) {
       return state.accessToken != null
+    },
+    hasRegisterToken (state) {
+      return state.register_token() != null
     }
   },
   mutations: {
@@ -30,7 +39,7 @@ export default new Vuex.Store({
     destroyToken (state) {
       state.accessToken = null
       state.refreshToken = null
-    }
+    },
   },
   actions: {
     // run the below action to get a new access token on expiration
@@ -81,7 +90,6 @@ export default new Vuex.Store({
             resolve()
           })
           .catch(err => {
-            console.log(err);
             reject(err)
           })
       })

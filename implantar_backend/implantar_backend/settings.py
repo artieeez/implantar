@@ -184,4 +184,4 @@ CLASSES_DE_USUARIOS = [
 ]
 
 # Idade máxima do RegisterToken em horas
-REGISTER_TOKEN_LIFE = 48
+REGISTER_TOKEN_LIFE = 200
