@@ -171,7 +171,9 @@ class UserViewSet(viewsets.ModelViewSet):
         return serializer_class
 
     def get_permissions(self):
-        permission_classes = [IsAuthenticated, EoProprioUsuario]
+        permission_classes = [IsAuthenticated]
+        if self.action == 'list':
+            permission_classes = [IsAuthenticated, IsOperador]
         if self.action in ('password', 'username'):
             permission_classes = [EoProprioUsuario]
         if self.action == 'my_profile':
