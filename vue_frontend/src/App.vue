@@ -29,4 +29,18 @@
   box-shadow: 2px 5px 5px 0px #998baf;
   margin: 0 0 20px 0;
 }
+.baseOuterCon1 {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+.baseCon1 {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 2px 5px 5px 0px rgb(221, 221, 221);
+  min-height: 200px;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
 </style>
