@@ -6,31 +6,54 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
+    loading: false,
     accessToken: localStorage.getItem('access_token') || null, // makes sure the user is logged in even after
     // refreshing the page
     refreshToken: localStorage.getItem('refresh_token') || null,
+    userProfile: JSON.parse(localStorage.getItem('user_profile')) || null,
     register_token: () => {
       var url_string = window.location.href; //window.location.href
       var url = new URL(url_string);
       var c = url.searchParams.get("register-token");
       return c},
-    loading: false,
-    userProfile: JSON.parse(localStorage.getItem('user_profile')) || null,
+    dbVersion: localStorage.getItem('db_version') || null,
+    redes: [],
+    users: [],
+    groups: [
+      {
+        name: 'operador'
+      },
+      {
+        name: 'operador_limitado'
+      },
+      {
+        name: 'representante'
+      },
+      {
+        name: 'representante_limitado'
+      },
+    ]
   },
   getters: {
-    loggedIn (state) {
-      // TODO incluir user
-      return state.accessToken != null
-    },
-    hasRegisterToken (state) {
-      return state.register_token() != null
-    },
     accessToken (state) {
       return state.accessToken;
     },
     getUserProfile (state) {
       return state.userProfile;
-    }
+    },
+    // Permissions
+    isOperador (state) {
+      if ('operador' in state.userProfile.groups) {
+        return true;
+      }
+      return false;
+    },
+    isAuthenticated (state) {
+      return (state.accessToken != null && state.userProfile != null)
+    },
+    hasRegisterToken (state) {
+      return state.register_token() != null
+    },
   },
   mutations: {
     updateLocalStorage (state, { access, refresh }) {
@@ -41,18 +64,29 @@ export default new Vuex.Store({
     },
     updateAccess (state, access) {
       state.accessToken = access
+      localStorage.setItem('access_token', access)
     },
-    destroyToken (state) {
+    destroyUserAuth (state) {
       state.accessToken = null
       state.refreshToken = null
+      state.userProfile = null
     },
-    updateUserProfile (state,{userProfile}) {
+    updateDbVersion (state, dbVersion) {
+      state.dbVersion = dbVersion;
+      localStorage.setItem('db_version', JSON.stringify(dbVersion))
+    },
+    updateRedes (state, redes) {
+      state.redes = redes;
+      /* localStorage.setItem('redes', JSON.stringify(redes)) */
+    },
+    updateUsers (state, users) {
+      state.users = users;
+      /* localStorage.setItem('users', JSON.stringify(users)) */
+    },
+    updateUserProfile (state, userProfile) {
       state.userProfile = userProfile;
       localStorage.setItem('user_profile', JSON.stringify(userProfile))
     },
-    destroyUserProfile (state) {
-      state.userProfile = null
-    }
   },
   actions: {
     // run the below action to get a new access token on expiration
@@ -73,20 +107,20 @@ export default new Vuex.Store({
       })
     },
     logoutUser (context) {
-      if (context.getters.loggedIn) {
+      if (context.getters.isAuthenticated) {
         return new Promise((resolve) => {
           axiosBase.post('/token/logout/')
             .then(() => {
               localStorage.removeItem('access_token')
               localStorage.removeItem('refresh_token')
               localStorage.removeItem('user_profile')
-              context.commit('destroyToken')
+              context.commit('destroyUserAuth')
             })
             .catch(err => {
               localStorage.removeItem('access_token')
               localStorage.removeItem('refresh_token')
               localStorage.removeItem('user_profile')
-              context.commit('destroyToken')
+              context.commit('destroyUserAuth')
               resolve(err)
             })
         })
@@ -113,19 +147,59 @@ export default new Vuex.Store({
     },
     fetchUserProfile (context) {
       return new Promise((resolve, reject) => {
-        // send the username and password to the backend API:
         axiosBase.get('/users/my_profile', {
           headers: { Authorization: `Bearer ${context.state.accessToken}` },
         })
-        // if successful update local storage:
           .then(response => {
-            context.commit('updateUserProfile', {userProfile: response.data}) // store the access and refresh token in localstorage
+            context.commit('updateUserProfile', response.data)
             resolve()
           })
           .catch(err => {
             reject(err)
           })
       })
-    }
+    },
+    fetchDbVersion (context) {
+      return new Promise((resolve, reject) => {
+        axiosBase.get('/get_version', {
+          headers: { Authorization: `Bearer ${context.state.accessToken}` },
+        })
+          .then(response => {
+            context.commit('updateDbVersion', response.data.version)
+            resolve(response.data.version)
+          })
+          .catch(err => {
+            reject(err)
+          })
+      })
+    },
+    fetchUsers (context) {
+      return new Promise((resolve, reject) => {
+        axiosBase.get('/users', {
+          headers: { Authorization: `Bearer ${context.state.accessToken}` },
+        })
+          .then(response => {
+            context.commit('updateUsers', response.data.results)
+            resolve(response.data.results)
+          })
+          .catch(err => {
+            reject(err)
+          })
+      })
+    },
+    fetchRedes (context) {
+      return new Promise((resolve, reject) => {
+        axiosBase.get('/redes', {
+          headers: { Authorization: `Bearer ${context.state.accessToken}` },
+        })
+          .then(response => {
+            context.commit('updateRedes', response.data)
+            resolve(response.data)
+          })
+          .catch(err => {
+            reject(err)
+          })
+      })
+    },
   }
 })
