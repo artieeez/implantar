@@ -168,8 +168,45 @@ class Item(models.Model):
         ordering = ['itemBase__categoria__id_arb', 'itemBase__id_arb']
 
 
+class Checklist(models.Model): 
+    """ Modelo de checklist
+        Novas visitas deverão carregar a partir um destes objetos
+        visita já registradas não deverão depender deste modelo
+    """
+    class Meta:
+        ordering = ['']
+
+    nome = models.TextField(blank=True)
+    comment = models.TextField(blank=True)
+    rede = models.ManyToManyField(
+        'checker.rede',
+        blank=True,
+    )
+    itens = models.ManyToManyField(
+        'checker.ItemBase',
+        through='checker.ChecklistItem',
+        through_fields=('checklist', 'itemBase'),
+        blank=True,
+    )
+    """ Cadastro """
+    t_created = models.DateField(auto_now_add=True)
+    t_modified = models.DateField(auto_now=True)
+    in_trash = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['t_created']
+    
+
+class ChecklistItem(models.Model):
+    """ Configuração do item dentro do modelo de checklist
+    """
+    inUse = models.BooleanField(default=True) # Determina se fará parte do c.
+    checklist = models.ForeignKey('checker.checklist', on_delete=models.CASCADE)
+    itemBase = models.ForeignKey('checker.ItemBase', on_delete=models.PROTECT)
+
+
 class ItemBase(models.Model):
-    id_arb = models.IntegerField(null=True)
+    id_arb = models.IntegerField(null=True) # Determina ordem
     text = models.CharField(max_length=255)
     active = models.BooleanField(default=True)
     categoria = models.ForeignKey('checker.Categoria',
@@ -188,7 +225,7 @@ class ItemBase(models.Model):
 
 
 class Categoria(models.Model):
-    id_arb = models.IntegerField(null=True)
+    id_arb = models.IntegerField(null=True) # Determina ordem
     nome = models.CharField(max_length=255)
 
     class Meta:
