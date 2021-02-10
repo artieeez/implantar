@@ -25,8 +25,8 @@
                 <template #cell(show_details)="row">
                     <div class='actionCell'>
                         <b-button size="sm" @click="row.toggleDetails" class="mr-2">
-                            <b-icon-arrow-down v-show='!row.detailsShowing'/>
-                            <b-icon-arrow-up v-show='row.detailsShowing'/>
+                            <b-icon-info-circle v-show='!row.detailsShowing'/>
+                            <b-icon-x-circle-fill v-show='row.detailsShowing'/>
                         </b-button>
                     </div>
                 </template>
@@ -82,6 +82,7 @@ export default {
             {
                 key: 'last_name',
                 label: 'Sobrenome',
+                sortable: true,
             },
             {
                 key: 'group',
