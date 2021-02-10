@@ -35,6 +35,9 @@ export default new Vuex.Store({
     ]
   },
   getters: {
+    isLoading (state) {
+      return state.loading;
+    },
     accessToken (state) {
       return state.accessToken;
     },
@@ -56,6 +59,9 @@ export default new Vuex.Store({
     },
   },
   mutations: {
+    setLoading (state, boolean) {
+      state.loading = boolean;
+    },
     updateLocalStorage (state, { access, refresh }) {
       localStorage.setItem('access_token', access)
       localStorage.setItem('refresh_token', refresh)
@@ -153,6 +159,20 @@ export default new Vuex.Store({
           .then(response => {
             context.commit('updateUserProfile', response.data)
             resolve()
+          })
+          .catch(err => {
+            reject(err)
+          })
+      })
+    },
+    user_partial_update (context, user) {
+      return new Promise((resolve, reject) => {
+        axiosBase.patch(`/users/${user.id}/`, user.data,
+        {
+          headers: { Authorization: `Bearer ${context.state.accessToken}` },
+        })
+          .then(response => {
+            resolve(response)
           })
           .catch(err => {
             reject(err)

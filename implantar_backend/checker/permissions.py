@@ -54,6 +54,15 @@ class HasRegisterToken(permissions.BasePermission):
         return False
 
 
+class IsUserHimselfOrOperador(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        if obj == request.user:
+            return True
+        if request.user.groups.filter(name = 'operador').exists():
+            return True
+        return False
+
+
 class EoProprioUsuario(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         # Read permissions are allowed to any request,

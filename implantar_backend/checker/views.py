@@ -225,7 +225,8 @@ class RedeViewSet(mixins.CreateModelMixin,
             permission_classes = [IsAdminUser]
         if self.action in ('password', 'username'):
             permission_classes = [EoProprioUsuario]
-
+        if self.action == 'partial_update':
+            permission_classes = [IsUserHimselfOrOperador]
         """ if self.request.method == 'DELETE':
             permission_classes = [IsAdminUser]
         elif self.request.method == 'POST':

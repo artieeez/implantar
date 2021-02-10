@@ -7,7 +7,7 @@
             <b-table
                 head-variant='light'
                 fixed
-                :busy="isBusy"
+                :busy="$store.getters.isLoading"
                 striped
                 hover
                 small
@@ -19,9 +19,33 @@
                 selectable
                 @row-selected="onRowSelected"
             >
-                <template #cell(index)="data">
-                    {{ data.index + 1 }}
+                <template #table-busy>
+                    <div class="text-center text-primary my-2">
+                    <b-spinner class="align-middle"></b-spinner>
+                    <strong> Carregando...</strong>
+                    </div>
                 </template>
+                <template #cell(index)="data">
+                    <span :class='{
+                        "font-italic": !data.item.is_active,
+                        "text-muted": !data.item.is_active,
+                        }'>{{ data.index + 1 }}</span>
+                </template>
+
+                <template #cell(first_name)="data">
+                    <span :class='{
+                        "font-italic": !data.item.is_active,
+                        "text-muted": !data.item.is_active,
+                        }'>{{ data.value }}</span>
+                </template>
+
+                <template #cell(last_name)="data">
+                    <span :class='{
+                        "font-italic": !data.item.is_active,
+                        "text-muted": !data.item.is_active,
+                        }'>{{ data.value }}</span>
+                </template>
+
                 <template #cell(show_details)="row">
                     <div class='actionCell'>
                         <b-button size="sm" @click="row.toggleDetails" class="mr-2">
@@ -35,14 +59,21 @@
                         <b-row class="mb-2">
                             <b-col sm="3" class="text-sm-right"><b>Email:</b></b-col>
                             <b-col>{{ row.item.email }}</b-col>
+                            <b-col sm="3" class="text-sm-right"><b>Ativo:</b></b-col>
+                            <b-col>{{ row.item.is_active ? 'Ativo' : 'Inativo' }}</b-col>
+                        </b-row>
+                        <b-row>
+                            <b-button
+                                variant="danger"
+                                class='ml-2'
+                                size='sm'
+                                @click="user_active_change(row.item.id, !row.item.is_active)"
+                                >
+                                <span v-if='row.item.is_active'><b-icon-lock-fill/> Desativar usuário</span>
+                                <span v-if='!row.item.is_active'><b-icon-unlock-fill/> Ativar usuário</span>
+                                </b-button>
                         </b-row>
                     </b-card>
-                </template>
-                <template #table-busy>
-                    <div class="text-center text-primary my-2">
-                    <b-spinner class="align-middle"></b-spinner>
-                    <strong> Carregando...</strong>
-                    </div>
                 </template>
             </b-table>
             <b-row>
@@ -68,7 +99,6 @@ export default {
   components: {NavBar, RegisterToken},
   data() {
     return {
-        isBusy: false,
         fields: [
             {
                 key: 'index',
@@ -104,28 +134,18 @@ export default {
           for (let i = 0; i < this.users.length; i++) {
               let row = this.users[i]
               row.show_details = false;
-              row.is_active = false;
               items.push(row);
           }
           return items;
       },
   },
+  async beforeCreate() {
+      this.$store.commit('setLoading', true);
+  },
   async created() {
     // Observar as DUAS declarações async em 'created()' e na função anônima,
     // de forma que se evite um stack overflow.
-    let success = false;
-    let store = this.$store;
-    do {
-       await store.dispatch('fetchUsers')
-            .then(() => {
-                success = true; // Breaks do while
-            })
-            .catch(async err => { // 1* Função anônima async
-                if (err.config && err.response && err.response.status === 401) { 
-                    await store.dispatch('refreshToken') // attempt to obtain new access token by running 'refreshToken' action
-                }
-            })
-    } while (!success);
+    this.fetchUsers();
   },
   methods: {
     onRowSelected(items) {
@@ -134,6 +154,48 @@ export default {
     clearSelected() {
         this.$refs.selectableTable.clearSelected()
     },
+    async user_active_change(id, boolean) {
+        this.$store.commit('setLoading', true);
+        let success = false;
+        let store = this.$store;
+        let count = 1;
+        let user = {
+            id: id,
+            data: {
+                is_active: boolean
+            }
+        }
+        do {
+        await store.dispatch('user_partial_update', user)
+                .then(() => {
+                    success = true; // Breaks do while
+                    this.fetchUsers();
+                })
+                .catch(async err => { // 1* Função anônima async
+                    if (err.config && err.response && err.response.status === 401) { 
+                        await store.dispatch('refreshToken') // attempt to obtain new access token by running 'refreshToken' action
+                    }
+                })
+        } while (!success && count < 10);
+    },
+    async fetchUsers() {
+        this.$store.commit('setLoading', true);
+        let success = false;
+        let store = this.$store;
+        let count = 1;
+        do {
+        await store.dispatch('fetchUsers')
+                .then(() => {
+                    success = true; // Breaks do while
+                    this.$store.commit('setLoading', false);
+                })
+                .catch(async err => { // 1* Função anônima async
+                    if (err.config && err.response && err.response.status === 401) { 
+                        await store.dispatch('refreshToken') // attempt to obtain new access token by running 'refreshToken' action
+                    }
+                })
+        } while (!success && count < 10);
+    }
   },
 };
 </script>
