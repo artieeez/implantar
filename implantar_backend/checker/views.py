@@ -172,17 +172,19 @@ class UserViewSet(viewsets.ModelViewSet):
         return serializer_class
 
     def get_permissions(self):
-        permission_classes = [IsAuthenticated]
-        if self.action == 'list':
-            permission_classes = [IsAuthenticated, IsOperador]
-        if self.action in ('password', 'username'):
-            permission_classes = [EoProprioUsuario]
+        permission_classes = [IsAuthenticated, IsOperador]
         if self.action == 'my_profile':
             permission_classes = [IsAuthenticated]
-        if self.request.method == 'POST':
+        elif self.request.method == 'POST':
             permission_classes = [HasRegisterToken]
-        if self.action == 'is_username_in_use':
+        elif self.action == 'list':
+            permission_classes = [IsAuthenticated, IsOperador]
+        elif self.action in ('password', 'username'):
+            permission_classes = [EoProprioUsuario]
+        elif self.action == 'is_username_in_use':
             permission_classes = [HasRegisterToken]
+        elif self.action == 'partial_update':
+            permission_classes = [IsUserHimselfOrOperador]
         return [permission() for permission in permission_classes]
 
 
@@ -214,20 +216,14 @@ class RedeViewSet(mixins.CreateModelMixin,
     def get_queryset(self):
         queryset = Rede.objects.filter(in_trash=False) # Lixeira
         user = self.request.user
-        if (user.profile.classe == 'O'): # Permissões
+        if (IsOperador().has_permission(self.request, RedeViewSet())): # Permissões
             return queryset
         else:
             return user.redes_visiveis
 
     def get_permissions(self):
-        if self.detail and self.request.method == 'GET':
-            permission_classes = [IsAuthenticated]
-        else:
-            permission_classes = [IsAdminUser]
-        if self.action in ('password', 'username'):
-            permission_classes = [EoProprioUsuario]
-        if self.action == 'partial_update':
-            permission_classes = [IsUserHimselfOrOperador]
+        permission_classes = [IsAuthenticated, IsOperador]
+
         """ if self.request.method == 'DELETE':
             permission_classes = [IsAdminUser]
         elif self.request.method == 'POST':
