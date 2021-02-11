@@ -255,13 +255,13 @@ class _BaseRedeSerializer(serializers.HyperlinkedModelSerializer):
 class RedeSerializer(_BaseRedeSerializer):
     class Meta:
         model = Rede
-        fields = ['url', 'id', 'nome', 'photo', 'pontos', 'contatos',
+        fields = ['url', 'id', 'nome', 'photo', 'pontos',
             't_created', 't_modified']
 
 class TrashRedeSerializer(_BaseRedeSerializer):
     class Meta:
         model = Rede
-        fields = ['url', 'id', 'nome', 'photo', 'pontos', 'contatos',
+        fields = ['url', 'id', 'nome', 'photo', 'pontos',
             't_created', 't_modified']
         extra_kwargs = {
             'url': {'view_name': 'trash-rede-detail'},
