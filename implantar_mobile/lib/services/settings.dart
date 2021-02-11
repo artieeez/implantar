@@ -4,14 +4,14 @@ const int CONN_LIMIT = 3;
 
 const Map<String, String> API = {
   'base': 'http://192.168.0.10/api/',
-  'hasConnection': 'api/',
-  'dbVersion': 'api/get_version/',
-  'auth': 'api/token-auth/',
-  'redes': 'api/redes/',
-  'visitas': 'api/visitas/',
-  'item-photo': 'api/item-photo/',
-  'signature': 'api/signature/',
-  'itemBase': 'api/item_base?active=true',
+  'hasConnection': '',
+  'dbVersion': 'get_version/',
+  'auth': 'token-auth/',
+  'redes': 'redes/',
+  'visitas': 'visitas/',
+  'item-photo': 'item-photo/',
+  'signature': 'signature/',
+  'itemBase': 'item_base?active=true',
 };
 
 /* Usar cache 

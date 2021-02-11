@@ -176,6 +176,7 @@ class DataSync {
         _rowRede.photo,
       ]);
     }
+    print(redes);
 
     /* Fetch itemBase */
     List<dynamic> itemBaseList = await _fetchItemBase();

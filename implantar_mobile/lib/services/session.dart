@@ -50,7 +50,7 @@ class Session {
     */
     try {
       http.Response response = await http.get(
-        settings.API['base'] + 'api/',
+        settings.API['base'],
       );
       if (response.statusCode >= 400 && response.statusCode <= 500) {
         return true;
