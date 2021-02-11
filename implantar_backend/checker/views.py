@@ -75,6 +75,7 @@ class RegisterTokenViewSet(viewsets.ModelViewSet):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    filterset_fields = ['is_active']
 
     @action(detail=True, methods=['put'])
     def password(self, request, pk, format=None):

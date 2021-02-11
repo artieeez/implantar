@@ -193,9 +193,14 @@ export default new Vuex.Store({
           })
       })
     },
-    fetchUsers (context) {
+    fetchUsers (context, filter_options) {
+      let searchUrl = '/users'
+      if (filter_options.is_active.in_use) {
+        let str_is_active = `?is_active=${filter_options.is_active.value}`
+        searchUrl += str_is_active
+      }
       return new Promise((resolve, reject) => {
-        axiosBase.get('/users', {
+        axiosBase.get(searchUrl, {
           headers: { Authorization: `Bearer ${context.state.accessToken}` },
         })
           .then(response => {

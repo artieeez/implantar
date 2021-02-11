@@ -77,11 +77,21 @@
                 </template>
             </b-table>
             <b-row>
-                <b-col sm='6' md='3' lg='3' class=''>
-                    <b-button block size="sm" @click="clearSelected">Limpar seleção</b-button>
-                </b-col>
                 <b-col sm='6' md='3' lg='3'>
+                    <b-button block size="sm" @click="clearSelected" class='mt-1'>Limpar seleção</b-button>
+                </b-col>
+                <b-col sm='6' md='3' lg='3' class='mt-1'>
                     <RegisterToken/>
+                </b-col>
+                <b-col sm='6' md='3' lg='3' class='mt-1'>
+                    <b-form-checkbox
+                        id="checkbox-1"
+                        v-model="filter_options.is_active.in_use"
+                        name="checkbox-1"
+                        @change='fetchUsers()'
+                        >
+                        Esconder inativos
+                    </b-form-checkbox>
                 </b-col>
             </b-row>
         </b-container>
@@ -99,6 +109,12 @@ export default {
   components: {NavBar, RegisterToken},
   data() {
     return {
+        filter_options: {
+            is_active: {
+                in_use: true,
+                value: true,
+            }
+        },
         fields: [
             {
                 key: 'index',
@@ -184,7 +200,7 @@ export default {
         let store = this.$store;
         let count = 1;
         do {
-        await store.dispatch('fetchUsers')
+        await store.dispatch('fetchUsers', this.filter_options)
                 .then(() => {
                     success = true; // Breaks do while
                     this.$store.commit('setLoading', false);
