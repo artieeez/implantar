@@ -1,3 +1,4 @@
 redes/
 checklist_data/
 */__pycache__/
+checker/*/__pycache__/
