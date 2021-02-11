@@ -5,22 +5,35 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser
 
 
-class SendToTrashModelMixin:
+class TrashModelMixin:
     """
-    Requires 'in_trash' boolean filed in model
+    Requires 'is_active' boolean filed in model
     Send a model to trash.
     """
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        if hasattr(instance, 'in_trash'):
+        if hasattr(instance, 'is_active'):
             self.perform_destroy(instance)
             return Response(status=status.HTTP_204_NO_CONTENT)
         else:
-            assert('Acrescente o boolean field "in_trash" ao model.')
+            assert('Acrescente o boolean field "is_active" ao model.')
 
     def perform_destroy(self, instance):
-        instance.in_trash = True
+        instance.is_active = False
         instance.save()
+
+    """
+    Restores from model trash.
+    """
+    @action(detail=True, methods=['post']) # FIX ME METHOD NOT ALLOWED
+    def restore(self, request, pk, format=None):
+        if request.method == 'POST':
+            instance = self.get_object()
+            if hasattr(instance, 'is_active'):
+                self.perform_restore(instance)
+                return Response(status=status.HTTP_200_OK)
+            else:
+                assert('Acrescente o boolean field "is_active" ao model.')
 
 
 class TrashMixin:
@@ -44,12 +57,12 @@ class TrashMixin:
     def restore(self, request, pk, format=None):
         if request.method == 'POST':
             instance = self.get_object()
-            if hasattr(instance, 'in_trash'):
+            if hasattr(instance, 'is_active'):
                 self.perform_restore(instance)
-                return Response(status=status.HTTP_204_NO_CONTENT)
+                return Response(status=status.HTTP_200_OK)
             else:
-                assert('Acrescente o boolean field "in_trash" ao model.')
+                assert('Acrescente o boolean field "is_active" ao model.')
 
     def perform_restore(self, instance):
-        instance.in_trash = False
+        instance.is_active = True
         instance.save()

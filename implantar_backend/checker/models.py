@@ -22,7 +22,6 @@ class Profile(models.Model):
         null=True)
     vCount = models.IntegerField(default=1)
     display_name = models.CharField(max_length=255)
-    in_trash = models.BooleanField(default=False)
 
 
 class RegisterToken(models.Model):
@@ -59,9 +58,9 @@ class Rede(models.Model):
         blank=True
     )
     """ Cadastro """
+    is_active = models.BooleanField(default=True)
     t_created = models.DateField(auto_now_add=True)
     t_modified = models.DateField(auto_now=True)
-    in_trash = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['nome']
@@ -83,10 +82,10 @@ class Ponto(models.Model):
         blank=True,
     )
     """ Cadastro """
+    is_active = models.BooleanField(default=True)
     t_created = models.DateField(auto_now_add=True)
     t_modified = models.DateField(auto_now=True)
     deleted = models.BooleanField(default=False)
-    in_trash = models.BooleanField(default=False)
 
 
     """ def save(self, *args, **kwargs):
@@ -122,9 +121,9 @@ class Visita(models.Model):
     )
     plantao = models.CharField(max_length=255, blank=True)
     """ Cadastro """
+    is_active = models.BooleanField(default=True)
     t_created = models.DateField(auto_now_add=True)
     t_modified = models.DateField(auto_now=True)
-    in_trash = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['t_created']
@@ -189,9 +188,9 @@ class Checklist(models.Model):
         blank=True,
     )
     """ Cadastro """
+    is_active = models.BooleanField(default=True)
     t_created = models.DateField(auto_now_add=True)
     t_modified = models.DateField(auto_now=True)
-    in_trash = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['t_created']
@@ -213,9 +212,9 @@ class ItemBase(models.Model):
         on_delete=models.PROTECT, null=True)
 
     """ Cadastro """
+    is_active = models.BooleanField(default=True)
     t_created = models.DateField(auto_now_add=True)
     t_modified = models.DateField(auto_now=True)
-    in_trash = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['categoria__id_arb', 'id_arb']

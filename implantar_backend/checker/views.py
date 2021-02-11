@@ -188,12 +188,29 @@ class UserViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
 
-class PontosDaRedeMixins:
+class RedeViewSet(mixins.CreateModelMixin,
+                  mixins.RetrieveModelMixin,
+                  mixins.UpdateModelMixin,
+                  mixins.ListModelMixin,
+                  trash_mixins.TrashModelMixin,
+                  viewsets.GenericViewSet):
+    
+    serializer_class = RedeSerializer
+    filterset_fields = ['is_active']
+
+    def get_queryset(self):
+        queryset = Rede.objects.all()
+        user = self.request.user
+        if (IsOperador().has_permission(self.request, RedeViewSet())): # Permissões
+            return queryset
+        else:
+            return user.redes_visiveis
+    
     @action(detail=True, methods=['get'])
     def pontos(self, request, pk, format=None):
         if request.method == 'GET':
             self.serializer_class = PontoSerializer
-            queryset = Rede.objects.get(id=pk).pontos.filter(in_trash=False)
+            queryset = Rede.objects.get(id=pk).pontos.filter(is_active=True) # filtro is_active
             page = self.paginate_queryset(queryset)
             if page is not None:
                 serializer = self.get_serializer(page, many=True)
@@ -201,25 +218,6 @@ class PontosDaRedeMixins:
 
             serializer = self.get_serializer(queryset, many=True)
             return Response(serializer.data)
-
-
-class RedeViewSet(mixins.CreateModelMixin,
-                  mixins.RetrieveModelMixin,
-                  mixins.UpdateModelMixin,
-                  mixins.ListModelMixin,
-                  trash_mixins.SendToTrashModelMixin,
-                  PontosDaRedeMixins,
-                  viewsets.GenericViewSet):
-    
-    serializer_class = RedeSerializer
-
-    def get_queryset(self):
-        queryset = Rede.objects.filter(in_trash=False) # Lixeira
-        user = self.request.user
-        if (IsOperador().has_permission(self.request, RedeViewSet())): # Permissões
-            return queryset
-        else:
-            return user.redes_visiveis
 
     def get_permissions(self):
         permission_classes = [IsAuthenticated, IsOperador]
@@ -236,21 +234,6 @@ class RedeViewSet(mixins.CreateModelMixin,
 
     def finalize_response(self, request, response, *args, **kwargs):
         """ Atualiza a versão da db """
-        xresponse = super().finalize_response(request, response, *args, **kwargs)
-        if request.method not in ['GET', 'HEAD', 'OPTIONS'] and (response.status_code >= 200 and response.status_code <=299):
-            db_version.upgrade_version()
-        return xresponse
-
-
-class TrashRedeViewSet(mixins.RetrieveModelMixin,
-                       mixins.ListModelMixin,
-                       trash_mixins.TrashMixin,
-                       PontosDaRedeMixins,
-                       viewsets.GenericViewSet):
-    queryset = Rede.objects.filter(in_trash=True)
-    serializer_class = TrashRedeSerializer
-
-    def finalize_response(self, request, response, *args, **kwargs):
         xresponse = super().finalize_response(request, response, *args, **kwargs)
         if request.method not in ['GET', 'HEAD', 'OPTIONS'] and (response.status_code >= 200 and response.status_code <=299):
             db_version.upgrade_version()
@@ -308,7 +291,17 @@ class ItemPhotoUpload(APIView):
         return user == dono_da_visita
 
 
-class ItensMixin:
+class VisitaViewSet(mixins.CreateModelMixin,
+                    mixins.RetrieveModelMixin,
+                    mixins.UpdateModelMixin,
+                    mixins.ListModelMixin,
+                    trash_mixins.TrashModelMixin,
+                    viewsets.GenericViewSet):
+    queryset = Visita.objects.all()
+    serializer_class = VisitaSerializer
+    filterset_fields = ['is_active']
+
+
     @action(detail=True, methods=['get'])
     def itens(self, request, pk, format=None):
         if request.method == 'GET':
@@ -323,32 +316,22 @@ class ItensMixin:
             return Response(serializer.data)
 
 
-class VisitaViewSet(mixins.CreateModelMixin,
+class PontoViewSet(mixins.CreateModelMixin,
                     mixins.RetrieveModelMixin,
                     mixins.UpdateModelMixin,
                     mixins.ListModelMixin,
-                    trash_mixins.SendToTrashModelMixin,
-                    ItensMixin,
+                    trash_mixins.TrashModelMixin,
                     viewsets.GenericViewSet):
-    queryset = Visita.objects.filter(in_trash=False)
-    serializer_class = VisitaSerializer
+    queryset = Ponto.objects.all()
+    serializer_class = PontoSerializer
+    filterset_fields = ['is_active']
 
 
-class TrashVisitaViewSet(mixins.RetrieveModelMixin,
-                        mixins.ListModelMixin,
-                        trash_mixins.TrashMixin,
-                        ItensMixin,
-                        viewsets.GenericViewSet):
-    queryset = Visita.objects.filter(in_trash=True)
-    serializer_class = VisitaSerializer
-
-
-class VisitasMixin:
     @action(detail=True, methods=['get'])
     def visitas(self, request, pk, format=None):
         if request.method == 'GET':
             self.serializer_class = VisitaSerializer
-            queryset = Ponto.objects.get(id=pk).visitas.filter(in_trash=False)
+            queryset = Ponto.objects.get(id=pk).visitas.filter(is_active=True)
             page = self.paginate_queryset(queryset)
             if page is not None:
                 serializer = self.get_serializer(page, many=True)
@@ -356,32 +339,6 @@ class VisitasMixin:
 
             serializer = self.get_serializer(queryset, many=True)
             return Response(serializer.data)
-
-
-class PontoViewSet(mixins.CreateModelMixin,
-                    mixins.RetrieveModelMixin,
-                    mixins.UpdateModelMixin,
-                    mixins.ListModelMixin,
-                    trash_mixins.SendToTrashModelMixin,
-                    VisitasMixin,
-                    viewsets.GenericViewSet):
-    queryset = Ponto.objects.filter(in_trash=False)
-    serializer_class = PontoSerializer
-
-    def finalize_response(self, request, response, *args, **kwargs):
-        xresponse = super().finalize_response(request, response, *args, **kwargs)
-        if request.method not in ['GET', 'HEAD', 'OPTIONS'] and (response.status_code >= 200 and response.status_code <=299):
-            db_version.upgrade_version()
-        return xresponse
-
-        
-class TrashPontoViewSet(mixins.RetrieveModelMixin,
-                        mixins.ListModelMixin,
-                        trash_mixins.TrashMixin,
-                        VisitasMixin,
-                        viewsets.GenericViewSet):
-    queryset = Ponto.objects.filter(in_trash=True)
-    serializer_class = PontoSerializer
 
     def finalize_response(self, request, response, *args, **kwargs):
         xresponse = super().finalize_response(request, response, *args, **kwargs)
@@ -394,40 +351,12 @@ class ItemBaseViewSet(mixins.CreateModelMixin,
                   mixins.RetrieveModelMixin,
                   mixins.UpdateModelMixin,
                   mixins.ListModelMixin,
-                  trash_mixins.SendToTrashModelMixin,
+                  trash_mixins.TrashModelMixin,
                   viewsets.GenericViewSet):
-    queryset = ItemBase.objects.filter(in_trash=False)
+    queryset = ItemBase.objects.all()
     serializer_class = ItemBaseSerializer
+    filterset_fields = ['is_active', 'active']
 
-    def finalize_response(self, request, response, *args, **kwargs):
-        xresponse = super().finalize_response(request, response, *args, **kwargs)
-        if request.method not in ['GET', 'HEAD', 'OPTIONS'] and (response.status_code >= 200 and response.status_code <=299):
-            db_version.upgrade_version()
-        return xresponse
-
-    @action(detail=False, methods=['get'])
-    def active(self, request):
-        queryset = ItemBase.objects.filter(active=True)
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
-
-    def perform_destroy(self, instance):
-        instance.in_trash = True
-        instance.active = False
-        instance.save()
-    
-
-class TrashItemBaseViewSet(mixins.RetrieveModelMixin,
-                       mixins.ListModelMixin,
-                       trash_mixins.TrashMixin,
-                       viewsets.GenericViewSet):
-    queryset = ItemBase.objects.filter(in_trash=True)
-    serializer_class = ItemBaseSerializer
 
     def finalize_response(self, request, response, *args, **kwargs):
         xresponse = super().finalize_response(request, response, *args, **kwargs)

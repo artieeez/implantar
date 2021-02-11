@@ -159,7 +159,7 @@ class VisitaSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Visita
-        fields = ['url', 'id', 'ponto_id', 'data', 'inicio', 'termino', 
+        fields = ['url', 'id', 'ponto_id', 'data', 'inicio', 'termino', 'is_active',
             'avaliador', 'signature', 'plantao', 'item_set', 't_created', 't_modified']
         extra_kwargs = {
             'avaliador': {'read_only': True},
@@ -219,14 +219,14 @@ class PontoSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Ponto
         fields = ['url', 'id', 'nome', 'rede_id', 'rede_nome', 't_created',
-            't_modified']
+            't_modified', 'is_active']
 
 
-class _BaseRedeSerializer(serializers.HyperlinkedModelSerializer):
+class _BaseRedeSerializer():
+    pontos = PontoSerializer(many=True, read_only=True)
     """ pontos = serializers.HyperlinkedRelatedField(many=True, 
         view_name='pontos-list', read_only=True) """
     """ cliente = UserCreateSerializer() """
-    pontos = PontoSerializer(many=True, read_only=True)
 
     def create(self, validated_data):
         """ cliente_data = validated_data.pop('cliente')
@@ -252,20 +252,13 @@ class _BaseRedeSerializer(serializers.HyperlinkedModelSerializer):
         return instance
 
 
-class RedeSerializer(_BaseRedeSerializer):
-    class Meta:
-        model = Rede
-        fields = ['url', 'id', 'nome', 'photo', 'pontos',
-            't_created', 't_modified']
+class RedeSerializer(serializers.HyperlinkedModelSerializer):
+    pontos = PontoSerializer(many=True, read_only=True)
 
-class TrashRedeSerializer(_BaseRedeSerializer):
     class Meta:
         model = Rede
         fields = ['url', 'id', 'nome', 'photo', 'pontos',
-            't_created', 't_modified']
-        extra_kwargs = {
-            'url': {'view_name': 'trash-rede-detail'},
-        }
+            't_created', 't_modified', 'is_active']
 
 
 class ItemPhotoSerializer(serializers.ModelSerializer):
