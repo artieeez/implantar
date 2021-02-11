@@ -1,5 +1,5 @@
 <template>
-    <b-button block variant='warning' size='sm' v-b-modal.modal-prevent-closing>
+    <b-button @click='fetchRedes()' block variant='warning' size='sm' v-b-modal.modal-prevent-closing>
         Gerar link de cadastro
         <div>
             <b-modal
@@ -52,7 +52,7 @@
                         ></b-form-select>
                     </b-form-group>
                 </form>
-                <div class='loadingCon' v-show='loading'>
+                <div class='loadingCon' v-show='$store.getters.isLoading'>
                     <b-spinner class="align-middle"></b-spinner>
                 </div>
             </b-modal>
@@ -67,11 +67,18 @@
         - lista de redes
     */
 import { mapGetters } from 'vuex'
+import * as helpers from '../../helpers/index'
 export default {
     name: 'RegisterToken',
     data() {
         return {
-            loading: false,
+            // Redes
+            filter_options: {
+                is_active: {
+                    in_use: true,
+                    value: true,
+                }
+            },
             redes: [],
             group_selected: [],
             redes_selected: [],
@@ -105,7 +112,26 @@ export default {
         }
     },
     methods: {
-        fetchRedes() {
+        async fetchRedes() {
+            this.$store.commit('setLoading', true);
+            let success = false;
+            let store = this.$store;
+            let count = 1;
+            do {
+            await store.dispatch('fetchRedes', this.filter_options)
+                    .then(() => {
+                        success = true; // Breaks do while
+                        this.$store.commit('setLoading', false);
+                        return;
+                    })
+                    .catch(async err => { // 1* Função anônima async
+                        if (err.config && err.response && err.response.status === 401) { 
+                            await store.dispatch('refreshToken') // attempt to obtain new access token by running 'refreshToken' action
+                        }
+                    })
+            await helpers.sleep(500);
+            count++;
+            } while (!success && count < 10);
         },
         checkFormValidity() {
             const valid = this.$refs.form.checkValidity()

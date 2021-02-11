@@ -103,6 +103,7 @@
 import NavBar from '../components/Navbar'
 import RegisterToken from '../components/cadastros/RegisterToken'
 import { mapState } from 'vuex'
+import * as helpers from '../helpers/index'
 
 export default {
   name: "Register",
@@ -182,7 +183,7 @@ export default {
             }
         }
         do {
-        await store.dispatch('user_partial_update', user)
+            await store.dispatch('user_partial_update', user)
                 .then(() => {
                     success = true; // Breaks do while
                     this.fetchUsers();
@@ -192,6 +193,8 @@ export default {
                         await store.dispatch('refreshToken') // attempt to obtain new access token by running 'refreshToken' action
                     }
                 })
+            await helpers.sleep(500);
+            count++;
         } while (!success && count < 10);
     },
     async fetchUsers() {
@@ -200,7 +203,7 @@ export default {
         let store = this.$store;
         let count = 1;
         do {
-        await store.dispatch('fetchUsers', this.filter_options)
+            await store.dispatch('fetchUsers', this.filter_options)
                 .then(() => {
                     success = true; // Breaks do while
                     this.$store.commit('setLoading', false);
@@ -210,6 +213,8 @@ export default {
                         await store.dispatch('refreshToken') // attempt to obtain new access token by running 'refreshToken' action
                     }
                 })
+            await helpers.sleep(500);
+            count++;
         } while (!success && count < 10);
     }
   },
