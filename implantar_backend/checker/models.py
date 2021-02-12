@@ -28,7 +28,7 @@ class RegisterToken(models.Model):
     token = models.CharField(max_length=255, blank=True)
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
     responsavel = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    rede = models.ForeignKey("checker.rede", on_delete=models.CASCADE)
+    redes = models.ManyToManyField("checker.rede", blank=True)
     t_created = models.DateTimeField(auto_now_add=True)
 
     def is_valid(self):

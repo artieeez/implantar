@@ -81,27 +81,31 @@ class UserSerializer(serializers.ModelSerializer):
 class RegisterTokenSerializer(serializers.ModelSerializer):
     responsavel = UserSerializer(read_only=True)
     idade = serializers.SerializerMethodField()
+    is_valid = serializers.SerializerMethodField()
 
     class Meta:
         model = RegisterToken
-        fields = ['id', 'idade', 'token', 'group', 'rede', 'responsavel']
+        fields = ['id', 'idade', 'token', 'group','redes', 'is_valid', 'responsavel']
         extra_kwargs = {
             'token': {'read_only': True},
             'idade': {'read_only': True},
+            'is_valid': {'read_only': True},
         }
 
     def create(self, validated_data):
         token = RegisterToken.objects.create(
             group=validated_data['group'],
-            rede=validated_data['rede'],
             responsavel = self.context['request'].user
         )
+        token.redes.set(validated_data['redes'])
         return token
 
     def get_idade(self, obj):
         idade = timezone.now() - obj.t_created
         return idade.seconds//3600 # Horas
-    
+
+    def get_is_valid(self, obj):
+        return obj.is_valid()
 
 class ItemBaseSerializer(serializers.ModelSerializer):
     class Meta:
