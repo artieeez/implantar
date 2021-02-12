@@ -44,7 +44,7 @@ class CustomAuthToken(ObtainAuthToken):
 class RegisterTokenViewSet(viewsets.ModelViewSet):
     serializer_class = RegisterTokenSerializer
     queryset = RegisterToken.objects.all()
-    
+
     @action(detail=True, methods=['get'])
     def verify(self, request, token, format=None):
         if request.method == 'GET':
@@ -69,6 +69,17 @@ class RegisterTokenViewSet(viewsets.ModelViewSet):
             permission_classes = [AllowAny]
         else:
             permission_classes = [IsAuthenticated, IsOperador]
+        return [permission() for permission in permission_classes]
+
+
+class GroupViewSet(viewsets.ModelViewSet):
+    queryset = Group.objects.all()
+    serializer_class = GroupSerializer
+
+    def get_permissions(self):
+        permission_classes = [IsAuthenticated, IsAdminUser]
+        if self.action == 'list':
+            permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
 
 

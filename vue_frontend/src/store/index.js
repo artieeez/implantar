@@ -19,20 +19,7 @@ export default new Vuex.Store({
     dbVersion: localStorage.getItem('db_version') || null,
     redes: [],
     users: [],
-    groups: [
-      {
-        name: 'operador'
-      },
-      {
-        name: 'operador_limitado'
-      },
-      {
-        name: 'representante'
-      },
-      {
-        name: 'representante_limitado'
-      },
-    ]
+    groups: [],
   },
   getters: {
     isLoading (state) {
@@ -43,6 +30,12 @@ export default new Vuex.Store({
     },
     getUserProfile (state) {
       return state.userProfile;
+    },
+    getGroups (state) {
+      return state.groups;
+    },
+    getRedes (state) {
+      return state.redes;
     },
     // Permissions
     isOperador (state) {
@@ -84,6 +77,10 @@ export default new Vuex.Store({
     updateRedes (state, redes) {
       state.redes = redes;
       /* localStorage.setItem('redes', JSON.stringify(redes)) */
+    },
+    updateGroups (state, groups) {
+      state.groups = groups;
+      /* localStorage.setItem('users', JSON.stringify(users)) */
     },
     updateUsers (state, users) {
       state.users = users;
@@ -179,6 +176,24 @@ export default new Vuex.Store({
           })
       })
     },
+    postRegisterToken (context, data) {
+      return new Promise((resolve, reject) => {
+        console.log(data);
+        axiosBase.post(`/register_token/`, {
+          group: data.group,
+          redes: data.redes
+        },
+        {
+          headers: { Authorization: `Bearer ${context.state.accessToken}` },
+        })
+          .then(response => {
+            resolve(response)
+          })
+          .catch(err => {
+            reject(err)
+          })
+      })
+    },
     fetchDbVersion (context) {
       return new Promise((resolve, reject) => {
         axiosBase.get('/get_version', {
@@ -187,6 +202,21 @@ export default new Vuex.Store({
           .then(response => {
             context.commit('updateDbVersion', response.data.version)
             resolve(response.data.version)
+          })
+          .catch(err => {
+            reject(err)
+          })
+      })
+    },
+    fetchGroups (context) {
+      let searchUrl = '/groups'
+      return new Promise((resolve, reject) => {
+        axiosBase.get(searchUrl, {
+          headers: { Authorization: `Bearer ${context.state.accessToken}` },
+        })
+          .then(response => {
+            context.commit('updateGroups', response.data.results)
+            resolve(response.data.results)
           })
           .catch(err => {
             reject(err)
@@ -218,8 +248,8 @@ export default new Vuex.Store({
           headers: { Authorization: `Bearer ${context.state.accessToken}` },
         })
           .then(response => {
-            context.commit('updateRedes', response.data)
-            resolve(response.data)
+            context.commit('updateRedes', response.data.results)
+            resolve(response.data.results)
           })
           .catch(err => {
             reject(err)

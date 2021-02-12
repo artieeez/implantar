@@ -18,6 +18,12 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = []
 
 
+class GroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Group
+        fields = '__all__'
+
+
 class UserCreateSerializer(serializers.ModelSerializer):
 
     class Meta:

@@ -5,6 +5,7 @@ from db_version import views as db_version
 
 # Create a router and register our viewsets with it.
 router = DefaultRouter()
+router.register(r'groups', views.GroupViewSet, basename='grupos')
 router.register(r'users', views.UserViewSet, basename='usuarios')
 router.register(r'register_token', views.RegisterTokenViewSet, basename='register-token')
 router.register(r'redes', views.RedeViewSet, basename='rede')
