@@ -5,3 +5,4 @@ checker/*/__pycache__/
 checker/management/commands/__pycache__
 drf_trashbin/__pycache__/
 db_version/migrations/__pycache__
+/db_version/__pycache__
