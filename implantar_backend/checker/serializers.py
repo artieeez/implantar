@@ -31,18 +31,24 @@ class UserCreateSerializer(serializers.ModelSerializer):
         fields = ['username', 'password', 'first_name', 'last_name', 'email']
 
     def create(self, validated_data):
-        str_registerToken = self.context['request'].query_params.get('register-token', None)
-        registerToken = RegisterToken.objects.get(token=str_registerToken)
+        # User Create
         user = User(
             username=validated_data['username'],
             first_name=validated_data['first_name'],
             last_name=validated_data['last_name'],
             email=validated_data['email'],
         )
+        # Password
         user.set_password(validated_data['password'])
         user.save()
+        # RegisterToken
+        str_registerToken = self.context['request'].query_params.get('register-token', None)
+        registerToken = RegisterToken.objects.get(token=str_registerToken)
         group = registerToken.group
         group.user_set.add(user)
+        for rede in registerToken.redes.all():
+            rede.assigned_to.add(user)
+        # Profile
         Profile.objects.create(user=user)
         return user
 
@@ -91,7 +97,7 @@ class RegisterTokenSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RegisterToken
-        fields = ['id', 'idade', 'token', 'group','redes', 'is_valid', 'responsavel']
+        fields = ['id', 'idade', 'token', 'group', 'redes', 'is_valid', 'responsavel']
         extra_kwargs = {
             'token': {'read_only': True},
             'idade': {'read_only': True},
