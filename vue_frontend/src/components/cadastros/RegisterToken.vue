@@ -16,7 +16,7 @@
                 <template #modal-ok>
                     Próximo
                 </template>
-                
+
                 <form ref="form" @submit.stop.prevent="handleSubmit" novalidate>
                     <b-form-group
                         id="input-group-1"
@@ -247,7 +247,8 @@ export default {
             let count = 1;
             // bugfix - id tem que ser string!
             let _redes = []
-            for (let i = 0; i < this.redes_selected; i++) {
+            console.log(this.redes_selected);
+            for (let i = 0; i < this.redes_selected.length; i++) {
                 _redes.push(this.redes_selected[i].toString());
             }
             let data = {
@@ -277,7 +278,6 @@ export default {
             registerTokenUrl.setAttribute('type', 'text');
             registerTokenUrl.value = this.get_register_link;
             registerTokenUrl.select();
-            console.log(registerTokenUrl.value + "<<<<<<");
             try {
                 document.execCommand('copy');
             } catch (err) {
