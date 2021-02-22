@@ -29,7 +29,8 @@
                     <span :class='{
                         "font-italic": !data.item.is_active,
                         "text-muted": !data.item.is_active,
-                        }'>{{ data.index + 1 }}</span>
+                        }'
+                        class='ml-2'>{{ data.index + 1 }}</span>
                 </template>
 
                 <template #cell(first_name)="data">
@@ -57,10 +58,12 @@
                 <template #row-details="row">
                     <b-card>
                         <b-row class="mb-2">
-                            <b-col sm="3" class="text-sm-right"><b>Email:</b></b-col>
+                            <b-col sm="2" class="text-sm-right"><b>Email:</b></b-col>
                             <b-col>{{ row.item.email }}</b-col>
-                            <b-col sm="3" class="text-sm-right"><b>Ativo:</b></b-col>
+                            <b-col sm="2" class="text-sm-right"><b>Ativo:</b></b-col>
                             <b-col>{{ row.item.is_active ? 'Ativo' : 'Inativo' }}</b-col>
+                            <b-col sm="2" class="text-sm-right"><b>Redes:</b></b-col>
+                            <b-col><div v-for='(rede, index) in row.item.redes' :key='index'>{{ rede.nome }}</div></b-col>
                         </b-row>
                         <b-row>
                             <b-button
@@ -132,8 +135,13 @@ export default {
                 sortable: true,
             },
             {
-                key: 'group',
+                key: 'groups[0].name',
                 label: 'Grupo',
+                sortable: true,
+            },
+            {
+                key: 'redes[0].nome',
+                label: 'Redes',
                 sortable: true,
             },
             {

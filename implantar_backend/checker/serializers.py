@@ -69,6 +69,7 @@ class UserUsernameSerializer(serializers.Serializer):
 
 class UserSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer()
+    groups = GroupSerializer(many=True)
 
     class Meta:
         model = User
@@ -82,12 +83,15 @@ class UserSerializer(serializers.ModelSerializer):
             'is_active',
             'date_joined',
             'last_login',
+            'redes',
+            'groups',
             ]
         extra_kwargs = {
             'username': {'read_only': True},
             'date_joined': {'read_only': True},
             'last_login': {'read_only': True},
         }
+        depth = 1
 
 
 class RegisterTokenSerializer(serializers.ModelSerializer):

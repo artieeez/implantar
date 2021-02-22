@@ -55,6 +55,7 @@ class Rede(models.Model):
     )
     assigned_to = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
+        related_name='redes',
         blank=True
     )
     """ Cadastro """
