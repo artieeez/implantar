@@ -10,6 +10,13 @@
             @hidden="resetModal"
             @ok="handleOk"
             >
+                <template #modal-cancel>
+                    Cancelar
+                </template>
+                <template #modal-ok>
+                    Próximo
+                </template>
+                
                 <form ref="form" @submit.stop.prevent="handleSubmit" novalidate>
                     <b-form-group
                         id="input-group-1"
@@ -51,7 +58,18 @@
                     <b-spinner class="align-middle"></b-spinner>
                 </div>
             </b-modal>
-
+        </div>
+        <div>
+            <b-modal id="bv-modal-token" hide-footer>
+                <template #modal-title>
+                    <h4>Aqui está o link de cadastro:</h4>
+                </template>
+                <div class="d-block text-center">
+                    <p class='register-token p-1'>{{ get_register_link }}</p>
+                </div>
+                <b-button class="" block @click="copy_register_url"><b-icon-clipboard/> Copiar</b-button>
+                <input type="hidden" id="register-url">
+            </b-modal>
         </div>
     </b-button>
 </template>
@@ -78,6 +96,8 @@ export default {
             redes_selected: [],
             groups: null,
             redes: [],
+            register_token: null,
+            register_token_form_to_copy: null,
         }
     },
     mounted() {
@@ -133,6 +153,9 @@ export default {
             } else {
                 return null;
             }
+        },
+        get_register_link() {
+            return `${window.location.hostname}/register?register-token=${this.register_token}`
         }
     },
     methods: {
@@ -203,12 +226,21 @@ export default {
             }
             // Post token data
             await this.postRegisterToken();
+            // Show register_token
+            if (this.register_token != null) {
+                this.$bvModal.show('bv-modal-token');
+            }
+
+            
             // Hide the modal manually
             this.$nextTick(() => {
                 this.$bvModal.hide('modal-prevent-closing')
             })
+
+
         },
         async postRegisterToken() {
+            // Retorna True em caso de sucesso
             this.$store.commit('setLoading', true);
             let success = false;
             let store = this.$store;
@@ -224,8 +256,9 @@ export default {
             }
             do {
             await store.dispatch('postRegisterToken', data)
-                    .then(() => {
+                    .then((response) => {
                         success = true; // Breaks do while
+                        this.register_token = response.data.token;
                         this.$store.commit('setLoading', false);
                         return;
                     })
@@ -237,7 +270,25 @@ export default {
             await helpers.sleep(500);
             count++;
             } while (!success && count < 10);
-        }
+        },
+        copy_register_url() {
+            let registerTokenUrl = document.querySelector('#register-url');
+            registerTokenUrl.value = this.get_register_link;
+            registerTokenUrl.setAttribute('type', 'text');
+            registerTokenUrl.value = this.get_register_link;
+            registerTokenUrl.select();
+            console.log(registerTokenUrl.value + "<<<<<<");
+            try {
+                document.execCommand('copy');
+            } catch (err) {
+                alert('Oops, erro ao copiar.');
+            }
+            /* unselect the range */
+            registerTokenUrl.setAttribute('type', 'hidden')
+            window.getSelection().removeAllRanges()
+
+            this.$bvModal.hide('bv-modal-token');
+        },
     }
   }
 </script>
@@ -247,5 +298,9 @@ export default {
     display: flex;
     width: 100%;
     justify-content: center;
+}
+.register-token {
+    font-size: 14px;
+    background-color: lightgray;
 }
 </style>
