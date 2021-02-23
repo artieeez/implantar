@@ -265,5 +265,18 @@ export default new Vuex.Store({
           })
       })
     },
+    fetchRedesDetail (context, id) {
+      return new Promise((resolve, reject) => {
+        axiosBase.get(`/redes/${id}`, {
+          headers: { Authorization: `Bearer ${context.state.accessToken}` },
+        })
+          .then(response => {
+            resolve(response.data)
+          })
+          .catch(err => {
+            reject(err)
+          })
+      })
+    },
   }
 })
