@@ -31,6 +31,13 @@ export default new Vuex.Store({
     getUserProfile (state) {
       return state.userProfile;
     },
+    getUserProfileRedesIdList (state) {
+      let list = [];
+      for (let i = 0; i < state.userProfile.profile.redes.length; i++) {
+        list.push(state.userProfile.profile.redes[i].id);
+      }
+      return list;
+    },
     getGroups (state) {
       return state.groups;
     },

@@ -140,7 +140,7 @@ export default {
                 sortable: true,
             },
             {
-                key: 'redes[0].nome',
+                key: 'profile.redes[0].nome',
                 label: 'Redes',
                 sortable: true,
             },

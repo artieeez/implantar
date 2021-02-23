@@ -35,7 +35,7 @@ router.beforeEach((to, from, next) => {
         if (store.getters.isOperador) {
           next()
         } else {
-          if (store.getters.getUserProfile.profile.redes.includes(parseInt(to.params.redeId))) {
+          if (store.getters.getUserProfileRedesIdList.includes(parseInt(to.params.redeId))) {
             next()
           } else {
             next({ name: 'painel' })
@@ -49,7 +49,7 @@ router.beforeEach((to, from, next) => {
     if (store.getters.isAuthenticated) {
       next({ name: 'painel' })
     } else {
-      // Possui Register Token
+      // Possui register Token
       if (to.matched.some(record => record.meta.requiresRegisterToken)) {
         if (store.getters.hasRegisterToken) {
           next()

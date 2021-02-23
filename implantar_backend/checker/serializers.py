@@ -12,10 +12,20 @@ from db_version import utils as db_version
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+    redes = serializers.SerializerMethodField()
 
     class Meta:
         model = Profile
         fields = '__all__'
+
+    def get_redes(self, obj):
+        redes = []
+        for row in obj.redes.all():
+            redes.append({
+                "id": row.id,
+                "nome": row.nome,
+            })
+        return redes
 
 
 class GroupSerializer(serializers.ModelSerializer):
