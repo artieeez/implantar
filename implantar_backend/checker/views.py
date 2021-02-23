@@ -134,15 +134,8 @@ class UserViewSet(viewsets.ModelViewSet):
     def my_profile(self, request, format=None):
         if request.method == 'GET':
             user = request.user
-            groups = []
-            for row in user.groups.all():
-                groups.append(row.name)
-            response = {
-                'first_name': user.first_name,
-                'last_name': user.last_name,
-                'groups': groups,
-            }
-            return Response(response, status=status.HTTP_200_OK,)
+            serializer = UserSerializer(user)
+            return Response(serializer.data)
 
     @action(detail=True, methods=['get'])
     def is_username_in_use(self, request, username, format=None):
