@@ -187,12 +187,71 @@ CORS_ALLOW_HEADERS = default_headers + (
 CORS_ALLOW_METHODS = list(default_methods)
 # CORS_ORIGIN_ALLOW_ALL = True
 
-# Define as classes de usuários.
+# Define as classes de usuários. | Utilizado em appconfig.py
 CLASSES_DE_USUARIOS = [
     'operador',
     'operador_limitado',
     'representante',
     'representante_limitado',
+]
+
+# Configuração das permissões da admin page | Utilizado em appconfig.py
+__all__actions__ = [
+    'add',
+    'change',
+    'delete',
+    'view',
+]
+OBJETOS_ACESSIVEIS_OPERADOR = [
+    {
+        'nome': 'profile',
+        'actions': [
+            'view',
+            'change',
+        ],
+    },
+    {
+        'nome': 'user',
+        'actions': [
+            'view',
+            'change',
+        ],
+    },
+    {
+        'nome': 'registertoken',
+        'actions': [
+            'view',
+            'delete',
+        ],
+    },
+    {
+        'nome': 'rede',
+        'actions': __all__actions__,
+    },
+    {
+        'nome': 'ponto',
+        'actions': __all__actions__,
+    },
+    {
+        'nome': 'visita',
+        'actions': __all__actions__,
+    },
+    {
+        'nome': 'checklist',
+        'actions': __all__actions__,
+    },
+    {
+        'nome': 'checklistitem',
+        'actions': __all__actions__,
+    },
+    {
+        'nome': 'itembase',
+        'actions': __all__actions__,
+    },
+    {
+        'nome': 'categoria',
+        'actions': __all__actions__,
+    },
 ]
 
 # Idade máxima do RegisterToken em horas

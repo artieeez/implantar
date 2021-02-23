@@ -60,6 +60,11 @@ class UserCreateSerializer(serializers.ModelSerializer):
         group.user_set.add(user)
         for rede in registerToken.redes.all():
             user.profile.redes.add(rede)
+        registerToken.delete()
+        # operador is_staff
+        if group.name == 'operador':
+            user.is_staff = True
+            user.save()
         
         return user
 
