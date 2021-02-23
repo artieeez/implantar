@@ -15,7 +15,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = []
+        fields = '__all__'
 
 
 class GroupSerializer(serializers.ModelSerializer):
@@ -41,15 +41,16 @@ class UserCreateSerializer(serializers.ModelSerializer):
         # Password
         user.set_password(validated_data['password'])
         user.save()
+        # Profile
+        Profile.objects.create(user=user)
         # RegisterToken
         str_registerToken = self.context['request'].query_params.get('register-token', None)
         registerToken = RegisterToken.objects.get(token=str_registerToken)
         group = registerToken.group
         group.user_set.add(user)
         for rede in registerToken.redes.all():
-            rede.assigned_to.add(user)
-        # Profile
-        Profile.objects.create(user=user)
+            user.profile.redes.add(rede)
+        
         return user
 
 
@@ -83,7 +84,6 @@ class UserSerializer(serializers.ModelSerializer):
             'is_active',
             'date_joined',
             'last_login',
-            'redes',
             'groups',
             ]
         extra_kwargs = {

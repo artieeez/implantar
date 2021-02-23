@@ -22,6 +22,12 @@ class Profile(models.Model):
         null=True)
     vCount = models.IntegerField(default=1)
     display_name = models.CharField(max_length=255)
+    # Redes com acesso
+    redes = models.ManyToManyField(
+        "checker.rede",
+        related_name='usuarios',
+        blank=True
+    )
 
 
 class RegisterToken(models.Model):
@@ -52,11 +58,6 @@ class Rede(models.Model):
     pontos = models.ManyToManyField(
         'checker.Ponto',
         blank=True,
-    )
-    assigned_to = models.ManyToManyField(
-        settings.AUTH_USER_MODEL,
-        related_name='redes',
-        blank=True
     )
     """ Cadastro """
     is_active = models.BooleanField(default=True)
