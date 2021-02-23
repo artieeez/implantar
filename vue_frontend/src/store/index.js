@@ -39,8 +39,10 @@ export default new Vuex.Store({
     },
     // Permissions
     isOperador (state) {
-      if ('operador' in state.userProfile.groups) {
-        return true;
+      for (let i = 0; i < state.userProfile.groups.length; i++) {
+        if (state.userProfile.groups[i].name === 'operador') {
+          return true;
+        }
       }
       return false;
     },

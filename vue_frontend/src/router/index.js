@@ -3,6 +3,7 @@ import VueRouter from 'vue-router'
 import Painel from '../views/Painel.vue'
 import Checklists from '../views/Checklists.vue'
 import Redes from '../views/Redes.vue'
+import RedesDetail from '../views/RedesDetail.vue'
 import Cadastros from '../views/Cadastros.vue'
 import Login from '../views/Login.vue'
 import Register from '../views/Register.vue'
@@ -35,6 +36,15 @@ const routes = [
     meta: {
       requiresAuth: true,
       requiresOperador: true
+    }
+  },
+  {
+    path: '/redes/:redeId',
+    name: 'redes-details',
+    component: RedesDetail,
+    meta: {
+      requiresAuth: true,
+      requiresAssignment: true
     }
   },
   {

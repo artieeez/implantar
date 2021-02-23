@@ -18,29 +18,38 @@ Vue.use(IdleVue, {
 Vue.config.productionTip = false
 
 router.beforeEach((to, from, next) => {
-  // if any of the routes in ./router.js has a meta named 'requiresAuth: true'
-  // then check if the user is logged in before routing to this path:
+  // Autenticação
   if (to.matched.some(record => record.meta.requiresAuth)) {
     if (!store.getters.isAuthenticated) {
       next({ name: 'login' })
     } else {
+      // Permissão Operador
       if (to.matched.some(record => record.meta.requiresOperador)) {
-        if (!store.getters.isOperador) {
+        if (store.getters.isOperador) {
           next()
         } else {
           next({ name: 'painel' })
+        }
+      // Permissão Assignment/ relacionado à rede
+      } else if (to.matched.some(record => record.meta.requiresAssignment)) {
+        if (store.getters.isOperador) {
+          next()
+        } else {
+          if (store.getters.getUserProfile.profile.redes.includes(parseInt(to.params.redeId))) {
+            next()
+          } else {
+            next({ name: 'painel' })
+          }
         }
       } else {
         next()
       }
     }
   } else if (to.matched.some(record => record.meta.requiresLogged)) {
-    // else if any of the routes in ./router.js has a meta named 'requiresLogged: true'
-    // then check if the user is logged in; if true continue to home page else continue routing to the destination path
-    // this comes to play if the user is logged in and tries to access the login/register page
     if (store.getters.isAuthenticated) {
       next({ name: 'painel' })
     } else {
+      // Possui Register Token
       if (to.matched.some(record => record.meta.requiresRegisterToken)) {
         if (store.getters.hasRegisterToken) {
           next()

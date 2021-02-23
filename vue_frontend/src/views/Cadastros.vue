@@ -109,7 +109,7 @@ import { mapState } from 'vuex'
 import * as helpers from '../helpers/index'
 
 export default {
-  name: "Register",
+  name: "Cadastros",
   components: {NavBar, RegisterToken},
   data() {
     return {
