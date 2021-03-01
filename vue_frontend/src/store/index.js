@@ -1,7 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import { axiosBase } from '../api/axios-base'
-
 Vue.use(Vuex)
 
 export default new Vuex.Store({
@@ -20,6 +19,7 @@ export default new Vuex.Store({
     redes: [],
     users: [],
     groups: [],
+    categorias: [],
   },
   getters: {
     isLoading (state) {
@@ -99,8 +99,14 @@ export default new Vuex.Store({
       state.userProfile = userProfile;
       localStorage.setItem('user_profile', JSON.stringify(userProfile))
     },
+    updateCategorias (state, categorias) {
+      state.categorias = categorias;
+      /* localStorage.setItem('users', JSON.stringify(users)) */
+    },
   },
   actions: {
+    /*  AUTH
+    */
     // run the below action to get a new access token on expiration
     refreshToken (context) {
       return new Promise((resolve, reject) => {
@@ -185,9 +191,22 @@ export default new Vuex.Store({
           })
       })
     },
+    categoria_partial_update (context, categoria) {
+      return new Promise((resolve, reject) => {
+        axiosBase.patch(`/categorias/${categoria.id}/`, categoria.data,
+        {
+          headers: { Authorization: `Bearer ${context.state.accessToken}` },
+        })
+          .then(response => {
+            resolve(response)
+          })
+          .catch(err => {
+            reject(err)
+          })
+      })
+    },
     postRegisterToken (context, data) {
       return new Promise((resolve, reject) => {
-        console.log(data);
         axiosBase.post(`/register_token/`, {
           group: data.group,
           redes: data.redes
@@ -251,6 +270,27 @@ export default new Vuex.Store({
           })
       })
     },
+    fetchCategorias (context, filter_options) {
+      let searchUrl = '/categorias'
+      if (filter_options != null) {
+        if (filter_options.is_active.in_use) {
+          let str_is_active = `?is_active=${filter_options.is_active.value}`
+          searchUrl += str_is_active
+        }
+      }
+      return new Promise((resolve, reject) => {
+        axiosBase.get(searchUrl, {
+          headers: { Authorization: `Bearer ${context.state.accessToken}` },
+        })
+          .then(response => {
+            context.commit('updateCategorias', response.data.results)
+            resolve(response.data.results)
+          })
+          .catch(err => {
+            reject(err)
+          })
+      })
+    },
     fetchRedes (context) {
       return new Promise((resolve, reject) => {
         axiosBase.get('/redes', {
@@ -272,6 +312,37 @@ export default new Vuex.Store({
         })
           .then(response => {
             resolve(response.data)
+          })
+          .catch(err => {
+            reject(err)
+          })
+      })
+    },
+    postCategoria (context, data) {
+      return new Promise((resolve, reject) => {
+        axiosBase.post(`/categorias/`, {
+          nome: data,
+          id_arb: 1,
+        },
+        {
+          headers: { Authorization: `Bearer ${context.state.accessToken}` },
+        })
+          .then(response => {
+            resolve(response)
+          })
+          .catch(err => {
+            reject(err)
+          })
+      })
+    },
+    deleteCategoria (context, id) {
+      return new Promise((resolve, reject) => {
+        axiosBase.delete(`/categorias/${id}`,
+        {
+          headers: { Authorization: `Bearer ${context.state.accessToken}` },
+        })
+          .then(response => {
+            resolve(response)
           })
           .catch(err => {
             reject(err)
