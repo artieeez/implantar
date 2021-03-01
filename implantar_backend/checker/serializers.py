@@ -138,6 +138,29 @@ class RegisterTokenSerializer(serializers.ModelSerializer):
     def get_is_valid(self, obj):
         return obj.is_valid()
 
+
+class CategoriaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Categoria
+        fields = '__all__'
+        extra_kwargs = {
+        }
+
+    def create(self, validated_data):
+        c = Categoria.objects.create(**validated_data)
+        # get id_arb
+        try:
+            id_arb = Categoria.objects.exclude(id_arb=None).latest('id_arb').id_arb + 1
+            c.id_arb = id_arb
+            c.save()
+        except Exception as e:
+            print(e)
+            c.id_arb = Categoria.objects.count()
+            c.save()
+
+        return c
+
+
 class ItemBaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = ItemBase
@@ -255,36 +278,6 @@ class PontoSerializer(serializers.HyperlinkedModelSerializer):
         model = Ponto
         fields = ['url', 'id', 'nome', 'rede_id', 'rede_nome', 't_created',
             't_modified', 'is_active']
-
-
-class _BaseRedeSerializer():
-    pontos = PontoSerializer(many=True, read_only=True)
-    """ pontos = serializers.HyperlinkedRelatedField(many=True, 
-        view_name='pontos-list', read_only=True) """
-    """ cliente = UserCreateSerializer() """
-
-    def create(self, validated_data):
-        """ cliente_data = validated_data.pop('cliente')
-        user = User(
-            email=cliente_data['email'],
-            username=cliente_data['username']
-        )
-        user.set_password(cliente_data['password'])
-        user.save()
-        try:
-            group = Group.objects.get(name=settings.CLIENTE_GROUP_NAME)
-            group.user_set.add(user)
-        except:
-            print("Err - Crie o grupo de clientes.")
-        profile_data = cliente_data.pop('profile')
-        Profile.objects.create(user=user, **profile_data) """
-
-        return Rede.objects.create(**validated_data)
-
-    def update(self, instance, validated_data):
-        instance.nome = validated_data.get('nome', instance.nome)
-        instance.save()
-        return instance
 
 
 class RedeSerializer(serializers.HyperlinkedModelSerializer):

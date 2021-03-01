@@ -12,6 +12,7 @@ router.register(r'redes', views.RedeViewSet, basename='rede')
 router.register(r'pontos', views.PontoViewSet, basename='ponto')
 router.register(r'visitas', views.VisitaViewSet, basename='visita')
 router.register(r'item_base', views.ItemBaseViewSet, basename='itembase')
+router.register(r'categorias', views.CategoriaViewSet, basename='categoria')
 
 
 # The API URLs are now determined automatically by the router.
@@ -25,6 +26,7 @@ urlpatterns = [
     path('register_token/verify/<str:token>', views.RegisterTokenViewSet.as_view({'get': 'verify'})),
     path('users/my_profile', views.UserViewSet.as_view({'get': 'my_profile'})),
     path('users/is_username_in_use/<str:username>', views.UserViewSet.as_view({'get': 'is_username_in_use'})),
+    path('categorias/is_categoria_in_use/<str:categoria>', views.CategoriaViewSet.as_view({'get': 'is_categoria_in_use'})),
     path('users/<int:pk>/username_reset', views.UserViewSet.as_view({'put': 'username'})),
     path('users/<int:pk>/password_reset', views.UserViewSet.as_view({'put': 'password'})),
     # Mobile

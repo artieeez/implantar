@@ -196,7 +196,7 @@ class RedeViewSet(mixins.CreateModelMixin,
                   mixins.RetrieveModelMixin,
                   mixins.UpdateModelMixin,
                   mixins.ListModelMixin,
-                  trash_mixins.TrashModelMixin,
+                  mixins.DestroyModelMixin,
                   viewsets.GenericViewSet):
     
     serializer_class = RedeSerializer
@@ -370,3 +370,52 @@ class ItemBaseViewSet(mixins.CreateModelMixin,
         if request.method not in ['GET', 'HEAD', 'OPTIONS'] and (response.status_code >= 200 and response.status_code <=299):
             db_version.upgrade_version()
         return xresponse
+
+
+class CategoriaViewSet(mixins.CreateModelMixin,
+                  mixins.RetrieveModelMixin,
+                  mixins.UpdateModelMixin,
+                  mixins.ListModelMixin,
+                  mixins.DestroyModelMixin,
+                  viewsets.GenericViewSet):
+    queryset = Categoria.objects.all()
+    serializer_class = CategoriaSerializer
+    filterset_fields = ['is_active']
+
+    def get_permissions(self):
+        permission_classes = [AllowAny]
+        """ if self.request.method == 'GET':
+            permission_classes = [IsAuthenticated]
+        else:
+            permission_classes = [IsAuthenticated, IsOperador] """
+        return [permission() for permission in permission_classes]
+
+    def finalize_response(self, request, response, *args, **kwargs):
+        xresponse = super().finalize_response(request, response, *args, **kwargs)
+        if request.method not in ['GET', 'HEAD', 'OPTIONS'] and (response.status_code >= 200 and response.status_code <=299):
+            db_version.upgrade_version()
+        return xresponse
+
+    @action(detail=True, methods=['get'])
+    def is_categoria_in_use(self, request, categoria, format=None):
+        if request.method == 'GET':
+            try:
+                c = Categoria.objects.filter(nome=categoria).exists()
+                if c:
+                    response = {
+                        'message': 'Nome de categoria indisponível.',
+                        'data': []
+                    }
+                    return Response(response, status=status.HTTP_200_OK)
+                else:
+                    response = {
+                        'message': 'Nome de categoria disponível.',
+                        'data': []
+                    }
+                    return Response(response, status=status.HTTP_204_NO_CONTENT)
+            except:
+                response = {
+                    'message': 'Erro',
+                    'data': []
+                }
+                return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

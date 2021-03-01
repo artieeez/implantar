@@ -228,6 +228,7 @@ class ItemBase(models.Model):
 class Categoria(models.Model):
     id_arb = models.IntegerField(null=True) # Determina ordem
     nome = models.CharField(max_length=255)
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         ordering = ['id_arb']
