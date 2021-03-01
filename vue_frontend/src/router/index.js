@@ -8,6 +8,7 @@ import Cadastros from '../views/Cadastros.vue'
 import Login from '../views/Login.vue'
 import Register from '../views/Register.vue'
 import Logout from '../views/Logout'
+import Sobre from '../views/Sobre'
 
 Vue.use(VueRouter)
 
@@ -80,7 +81,15 @@ const routes = [
     meta: {
       requiresAuth: true
     }
-  }
+  },
+  {
+    path: '/sobre',
+    name: 'sobre',
+    component: Sobre,
+    meta: {
+      requiresAuth: false
+    }
+  },
 ]
 
 const router = new VueRouter({

@@ -5,42 +5,49 @@ const APIUrl = 'http://0.0.0.0/api'
 const APIEndpoints = {
   verifyRegisterToken: '/register_token/verify',
   is_username_in_use: '/users/is_username_in_use',
+  is_categoria_in_use: '/categorias/is_categoria_in_use',
 }
 
 const axiosBase = axios.create({
   baseURL: APIUrl,
-  headers: { contentType: 'application/json' }
-})
-const getAPI = axios.create({
-  baseURL: APIUrl
-})
-getAPI.interceptors.response.use(undefined, function (err) {
-  // if error response status is 401, it means the request was invalid due to expired access token
-  if (err.config && err.response && err.response.status === 401) {
-    store.dispatch('refreshToken') // attempt to obtain new access token by running 'refreshToken' action
-      .then(access => {
-        // if successful re-send the request to get the data from server
-        axios.request({
-          baseURL: APIUrl,
-          method: 'get',
-          headers: { Authorization: `Bearer ${access}` }, // the new access token is attached to the authorization header
-          url: '/mods/'
-        }).then(response => {
-          // if successfully received the data store it in store.state.APIData so that 'Downloads' component can grab the
-          // data from it and display to the client.
-          console.log('Success getting the Mods')
-          store.state.APIData = response.data
-        }).catch(err => {
-          console.log('Got the new access token but error while trying to fetch data from the API using it')
-          return Promise.reject(err)
-        })
-      })
-      .catch(err => {
-
-        console.log("errou aqui");
-        return Promise.reject(err)
-      })
+  headers: { 
+    contentType: 'application/json',
   }
 })
+const axiosBaseTest = axios.create({
+  baseURL: APIUrl
+})
+axiosBase.interceptors.response.use(function (response) {
+  return response;
+}, function (err) {
+  // if error response status is 401, it means the request was invalid due to expired access token
+  return new Promise(function (resolve, reject) {
+    if (err.config && err.response && err.response.status === 401) {
+      console.log("Interceptor - 1 <<<<<<<<  |  >>>>>>>");
+      store.dispatch('refreshToken') // attempt to obtain new access token by running 'refreshToken' action
+        .then(access => {
+          console.log("Interceptor - 2 - got acess key");
+          err.config.headers.Authorization = `Bearer ${access}`;
+          console.log("Interceptor - 4 - retrying request");
+          console.log(err.config.headers);
+          axios.request(
+            err.config,
+          ).then(response => {
+            console.log("Interceptor - 5 - successfully got data with new token");
+            resolve(response);
+          }).catch(err => {
+            console.log('Got the new access token but error while trying to fetch data from the API using it')
+            reject(err);
+          })
+        })
+        .catch(err => {
+          reject(err);
+        })
+    } else {
+      reject(err);
+    }
+  })
+  
+})
 
-export { axiosBase, getAPI, APIEndpoints }
+export { axiosBase, axiosBaseTest, APIEndpoints }

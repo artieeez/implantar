@@ -62,7 +62,6 @@
 <script>
 import NavBar from '../components/Navbar'
 import { mapState } from 'vuex'
-import * as helpers from '../helpers/index'
 
 export default {
   name: "Redes",
@@ -110,25 +109,11 @@ export default {
     this.fetchRedes();
   },
   methods: {
-    async fetchRedes() {
-        this.$store.commit('setLoading', true);
-        let success = false;
-        let store = this.$store;
-        let count = 1;
-        do {
-            await store.dispatch('fetchRedes', this.filter_options)
+    fetchRedes() {
+        this.$store.dispatch('fetchRedes', this.filter_options)
                 .then(() => {
-                    success = true; // Breaks do while
                     this.$store.commit('setLoading', false);
                 })
-                .catch(async err => { // 1* Função anônima async
-                    if (err.config && err.response && err.response.status === 401) { 
-                        await store.dispatch('refreshToken') // attempt to obtain new access token by running 'refreshToken' action
-                    }
-                })
-            await helpers.sleep(500);
-            count++;
-        } while (!success && count < 10);
     }
   },
 };

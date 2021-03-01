@@ -126,20 +126,21 @@ export default new Vuex.Store({
     },
     logoutUser (context) {
       if (context.getters.isAuthenticated) {
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
           axiosBase.post('/token/logout/')
-            .then(() => {
+            .then((response) => {
               localStorage.removeItem('access_token')
               localStorage.removeItem('refresh_token')
               localStorage.removeItem('user_profile')
               context.commit('destroyUserAuth')
+              resolve(response)
             })
             .catch(err => {
               localStorage.removeItem('access_token')
               localStorage.removeItem('refresh_token')
               localStorage.removeItem('user_profile')
               context.commit('destroyUserAuth')
-              resolve(err)
+              reject(err)
             })
         })
       }

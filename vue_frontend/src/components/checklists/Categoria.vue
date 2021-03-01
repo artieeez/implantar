@@ -87,7 +87,6 @@
 
 <script>
 import { mapState } from 'vuex'
-import * as helpers from '../../helpers/index'
 import NovaCategoria from './NovaCategoria'
 import DeleteButton from './DeleteButton'
 
@@ -145,51 +144,21 @@ export default {
         this.selected = items
     },
     async categoria_active_change(id, boolean) {
-        this.$store.commit('setLoading', true);
-        let success = false;
-        let store = this.$store;
-        let count = 1;
         let categoria = {
             id: id,
             data: {
                 is_active: boolean
             }
         }
-        do {
-            await store.dispatch('categoria_partial_update', categoria)
-                .then(() => {
-                    success = true; // Breaks do while
-                    this.fetchCategorias();
-                })
-                .catch(async err => { // 1* Função anônima async
-                    if (err.config && err.response && err.response.status === 401) { 
-                        await store.dispatch('refreshToken') // attempt to obtain new access token by running 'refreshToken' action
-                    }
-                })
-            await helpers.sleep(500);
-            count++;
-        } while (!success && count < 10);
+        this.$store.dispatch('categoria_partial_update', categoria)
+                    .then(() => {
+                        this.fetchCategorias();
+                    })
     },
     async fetchCategorias() {
-        this.$store.commit('setLoading', true);
-        let success = false;
-        let store = this.$store;
-        let count = 1;
-        do {
-            await store.dispatch('fetchCategorias', this.filter_options)
-                .then(() => {
-                    success = true; // Breaks do while
-                    this.$store.commit('setLoading', false);
-                })
-                .catch(async err => { // 1* Função anônima async
-                    if (err.config && err.response && err.response.status === 401) { 
-                        await store.dispatch('refreshToken') // attempt to obtain new access token by running 'refreshToken' action
-                    }
-                })
-            await helpers.sleep(500);
-            count++;
-        } while (!success && count < 10);
-    }
+        
+        await this.$store.dispatch('fetchCategorias', this.filter_options);
+    },
   },
 };
 </script>

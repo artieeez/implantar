@@ -16,7 +16,6 @@
 
 <script>
 import NavBar from '../components/Navbar'
-import * as helpers from '../helpers/index'
 
 export default {
   name: "RedesDetail",
@@ -44,25 +43,10 @@ export default {
   },
   methods: {
     async fetchRedesDetail() {
-        this.$store.commit('setLoading', true);
-        let success = false;
-        let store = this.$store;
-        let count = 1;
-        do {
-            await store.dispatch('fetchRedesDetail', this.$route.params.redeId)
+        this.$store.dispatch('fetchRedesDetail', this.$route.params.redeId)
                 .then((data) => {
                     this.rede = data;
-                    success = true; // Breaks do while
-                    this.$store.commit('setLoading', false);
                 })
-                .catch(async err => { // 1* Função anônima async
-                    if (err.config && err.response && err.response.status === 401) { 
-                        await store.dispatch('refreshToken') // attempt to obtain new access token by running 'refreshToken' action
-                    }
-                })
-            await helpers.sleep(500);
-            count++;
-        } while (!success && count < 10);
     }
   },
 };

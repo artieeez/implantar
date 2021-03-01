@@ -21,12 +21,6 @@
                     <h4><span><b-icon-building/></span> Redes</h4>
                 </b-button>
             </b-col>
-            <b-col sm='12' md='6'>
-                <b-button :variant='painelButtont' class='painelButton'
-                    :to='{ name:"visitas" }'>
-                    <h4><span><b-icon-clipboard-check/></span> Visitas</h4>
-                </b-button>
-            </b-col>
         </b-row>
     </b-container>
   </div>

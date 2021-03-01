@@ -30,10 +30,6 @@ export default {
         model: String,
         item: Object,  
     },
-    data() {
-        return {
-        }
-    },
     computed: {
     },
     methods: {

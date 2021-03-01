@@ -80,7 +80,6 @@
         - lista de redes
     */
 import { mapGetters } from 'vuex'
-import * as helpers from '../../helpers/index'
 export default {
     name: 'RegisterToken',
     data() {
@@ -160,48 +159,18 @@ export default {
     },
     methods: {
         async fetchGroups() {
-            this.$store.commit('setLoading', true);
-            let success = false;
-            let store = this.$store;
-            let count = 1;
-            do {
-            await store.dispatch('fetchGroups')
-                    .then(() => {
-                        success = true; // Breaks do while
+            this.$store.dispatch('fetchGroups')
+                .then(() => {
                         this.groups = this.getGroups;
                         this.$store.commit('setLoading', false);
-                        return;
                     })
-                    .catch(async err => { // 1* Função anônima async
-                        if (err.config && err.response && err.response.status === 401) { 
-                            await store.dispatch('refreshToken') // attempt to obtain new access token by running 'refreshToken' action
-                        }
-                    })
-            await helpers.sleep(500);
-            count++;
-            } while (!success && count < 10);
         },
         async fetchRedes() {
-            this.$store.commit('setLoading', true);
-            let success = false;
-            let store = this.$store;
-            let count = 1;
-            do {
-            await store.dispatch('fetchRedes', this.filter_options)
-                    .then(() => {
-                        success = true; // Breaks do while
+            this.$store.dispatch('fetchRedes', this.filter_options)
+                .then(() => {
                         this.redes = this.getRedes;
                         this.$store.commit('setLoading', false);
-                        return;
                     })
-                    .catch(async err => { // 1* Função anônima async
-                        if (err.config && err.response && err.response.status === 401) { 
-                            await store.dispatch('refreshToken') // attempt to obtain new access token by running 'refreshToken' action
-                        }
-                    })
-            await helpers.sleep(500);
-            count++;
-            } while (!success && count < 10);
         },
         checkFormValidity() {
             return this.invalidGrupo && this.invalidRedes
@@ -242,9 +211,6 @@ export default {
         async postRegisterToken() {
             // Retorna True em caso de sucesso
             this.$store.commit('setLoading', true);
-            let success = false;
-            let store = this.$store;
-            let count = 1;
             // bugfix - id tem que ser string!
             let _redes = []
             console.log(this.redes_selected);
@@ -255,22 +221,11 @@ export default {
                 group: this.group_selected,
                 redes: this.redes_selected,
             }
-            do {
-            await store.dispatch('postRegisterToken', data)
-                    .then((response) => {
-                        success = true; // Breaks do while
-                        this.register_token = response.data.token;
-                        this.$store.commit('setLoading', false);
-                        return;
-                    })
-                    .catch(async err => { // 1* Função anônima async
-                        if (err.config && err.response && err.response.status === 401) { 
-                            await store.dispatch('refreshToken') // attempt to obtain new access token by running 'refreshToken' action
-                        }
-                    })
-            await helpers.sleep(500);
-            count++;
-            } while (!success && count < 10);
+            this.$store.dispatch('postRegisterToken', data)
+                .then((response) => {
+                    this.register_token = response.data.token;
+                    this.$store.commit('setLoading', false);
+                })
         },
         copy_register_url() {
             let registerTokenUrl = document.querySelector('#register-url');

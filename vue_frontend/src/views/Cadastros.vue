@@ -106,7 +106,6 @@
 import NavBar from '../components/Navbar'
 import RegisterToken from '../components/cadastros/RegisterToken'
 import { mapState } from 'vuex'
-import * as helpers from '../helpers/index'
 
 export default {
   name: "Cadastros",
@@ -181,49 +180,22 @@ export default {
     },
     async user_active_change(id, boolean) {
         this.$store.commit('setLoading', true);
-        let success = false;
-        let store = this.$store;
-        let count = 1;
         let user = {
             id: id,
             data: {
                 is_active: boolean
             }
         }
-        do {
-            await store.dispatch('user_partial_update', user)
+        this.$store.dispatch('user_partial_update', user)
                 .then(() => {
-                    success = true; // Breaks do while
                     this.fetchUsers();
                 })
-                .catch(async err => { // 1* Função anônima async
-                    if (err.config && err.response && err.response.status === 401) { 
-                        await store.dispatch('refreshToken') // attempt to obtain new access token by running 'refreshToken' action
-                    }
-                })
-            await helpers.sleep(500);
-            count++;
-        } while (!success && count < 10);
     },
     async fetchUsers() {
-        this.$store.commit('setLoading', true);
-        let success = false;
-        let store = this.$store;
-        let count = 1;
-        do {
-            await store.dispatch('fetchUsers', this.filter_options)
+        this.$store.dispatch('fetchUsers', this.filter_options)
                 .then(() => {
-                    success = true; // Breaks do while
                     this.$store.commit('setLoading', false);
                 })
-                .catch(async err => { // 1* Função anônima async
-                    if (err.config && err.response && err.response.status === 401) { 
-                        await store.dispatch('refreshToken') // attempt to obtain new access token by running 'refreshToken' action
-                    }
-                })
-            await helpers.sleep(500);
-            count++;
-        } while (!success && count < 10);
     }
   },
 };
