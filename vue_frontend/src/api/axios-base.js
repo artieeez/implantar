@@ -14,9 +14,6 @@ const axiosBase = axios.create({
     contentType: 'application/json',
   }
 })
-const axiosBaseTest = axios.create({
-  baseURL: APIUrl
-})
 axiosBase.interceptors.response.use(function (response) {
   return response;
 }, function (err) {
@@ -47,7 +44,13 @@ axiosBase.interceptors.response.use(function (response) {
       reject(err);
     }
   })
-  
 })
 
-export { axiosBase, axiosBaseTest, APIEndpoints }
+const axiosRefreshTokenBase = axios.create({
+  baseURL: APIUrl,
+  headers: { 
+    contentType: 'application/json',
+  }
+})
+
+export { axiosBase, axiosRefreshTokenBase, APIEndpoints }
