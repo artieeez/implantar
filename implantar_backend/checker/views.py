@@ -10,6 +10,7 @@ from rest_framework.pagination import PageNumberPagination, LimitOffsetPaginatio
 from rest_framework import status, permissions, mixins
 from django.conf import settings
 from drf_trashbin import trash_mixins
+from django.db.transaction import atomic
 
 # DbVersion
 from db_version import utils as db_version
@@ -419,3 +420,38 @@ class CategoriaViewSet(mixins.CreateModelMixin,
                     'data': []
                 }
                 return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    
+    @action(detail=True, methods=['patch'])
+    def change_order(self, request, pk, format=None):
+        if request.method == 'PATCH':
+            order = self.fix_order()
+            if order['is_ok']:
+                c1 = order['queryset'].get(pk=pk)
+                c2 = order['queryset'].get(id_arb= request.data['id_arb'])
+                c2.id_arb, c1.id_arb = c1.id_arb, request.data['id_arb']
+                c1.save()
+                c2.save()
+                return Response(None, status=status.HTTP_200_OK)
+            else:
+                return Response({'message': 'Ordem organizada'}, status=status.HTTP_200_OK)
+            """ return Response(None, status=status.HTTP_500_INTERNAL_SERVER_ERROR) """
+
+    @atomic
+    def fix_order(self):
+        queryset = Categoria.objects.all().order_by('id_arb')
+        if (queryset.last().id_arb == len(queryset)):
+            return {
+                'queryset': queryset,
+                'is_ok': True,
+            }
+        index = 1
+        for row in queryset:
+            row.id_arb = index
+            row.save()
+            index += 1
+        return {
+            'queryset': queryset,
+            'is_ok': False,
+        }
+

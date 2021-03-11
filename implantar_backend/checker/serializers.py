@@ -150,8 +150,11 @@ class CategoriaSerializer(serializers.ModelSerializer):
         c = Categoria.objects.create(**validated_data)
         # get id_arb
         try:
-            id_arb = Categoria.objects.exclude(id_arb=None).latest('id_arb').id_arb + 1
-            c.id_arb = id_arb
+            if Categoria.objects.count() > 1:
+                id_arb = Categoria.objects.exclude(id_arb=None).latest('id_arb').id_arb + 1
+                c.id_arb = id_arb
+            else:
+                c.id_arb = 1
             c.save()
         except Exception as e:
             print(e)

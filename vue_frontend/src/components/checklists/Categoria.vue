@@ -19,12 +19,20 @@
             <strong> Carregando...</strong>
             </div>
         </template>
-        <template #cell(index)="data">
-            <span :class='{
+        <template #cell(id_arb)="data">
+            <div :class='{
                 "font-italic": !data.item.is_active,
                 "text-muted": !data.item.is_active,
                 }'
-                class='ml-2'>{{ data.index + 1 }}</span>
+                class='ml-2 mt-1'
+            >
+                <Ordem
+                    :id='data.item.id'
+                    :index='data.value'
+                    model='categoria'
+                    :length='items.length'
+                    />
+            </div>
         </template>
 
         <template #cell(nome)="data">
@@ -33,7 +41,6 @@
                 "text-muted": !data.item.is_active,
                 }'>{{ data.value }}</span>
         </template>
-
         <template #cell(show_details)="row">
             <div class='actionCell'>
                 <b-button size="sm" @click="row.toggleDetails" class="mr-2">
@@ -87,12 +94,13 @@
 
 <script>
 import { mapState } from 'vuex'
+import Ordem from './Ordem'
 import NovaCategoria from './NovaCategoria'
 import DeleteButton from './DeleteButton'
 
 export default {
   name: "Categoria",
-  components: {NovaCategoria, DeleteButton},
+  components: {Ordem, NovaCategoria, DeleteButton},
   data() {
     return {
         filter_options: {
@@ -103,7 +111,7 @@ export default {
         },
         fields: [
             {
-                key: 'index',
+                key: 'id_arb',
                 label: '',
             },
             {
@@ -146,18 +154,18 @@ export default {
     async categoria_active_change(id, boolean) {
         let categoria = {
             id: id,
-            data: {
-                is_active: boolean
-            }
+            is_active: boolean
         }
         this.$store.dispatch('categoria_partial_update', categoria)
-                    .then(() => {
-                        this.fetchCategorias();
-                    })
+            .then(() => {
+                this.fetchCategorias();
+            })
     },
-    async fetchCategorias() {
-        
-        await this.$store.dispatch('fetchCategorias', this.filter_options);
+    fetchCategorias() {
+        this.$store.dispatch('fetchCategorias', this.filter_options)
+        .then(() => {
+            this.$store.commit('setLoading', false);
+        })
     },
   },
 };

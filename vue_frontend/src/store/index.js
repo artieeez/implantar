@@ -195,7 +195,21 @@ export default new Vuex.Store({
     },
     categoria_partial_update (context, categoria) {
       return new Promise((resolve, reject) => {
-        axiosBase.patch(`/categorias/${categoria.id}/`, categoria.data,
+        axiosBase.patch(`/categorias/${categoria.id}/`, categoria,
+        {
+          headers: { Authorization: `Bearer ${context.state.accessToken}` },
+        })
+          .then(response => {
+            resolve(response)
+          })
+          .catch(err => {
+            reject(err)
+          })
+      })
+    },
+    categoria_change_order (context, categoria) {
+      return new Promise((resolve, reject) => {
+        axiosBase.patch(`/categorias/${categoria.id}/change_order`, categoria,
         {
           headers: { Authorization: `Bearer ${context.state.accessToken}` },
         })
@@ -339,8 +353,7 @@ export default new Vuex.Store({
     },
     deleteCategoria (context, id) {
       return new Promise((resolve, reject) => {
-        axiosBase.delete(`/categorias/${id}`,
-        {
+        axiosBase.delete(`/categorias/${id}`, {
           headers: { Authorization: `Bearer ${context.state.accessToken}` },
         })
           .then(response => {
