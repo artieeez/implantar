@@ -61,7 +61,7 @@
                         class='ml-2'
                         size='sm'
                         @click="categoria_active_change(row.item.id, !row.item.is_active)"
-                        >
+                    >
                         <span v-if='row.item.is_active'><b-icon-lock-fill/> Desativar categoria</span>
                         <span v-if='!row.item.is_active'><b-icon-unlock-fill/> Ativar categoria</span>
                         </b-button>
@@ -69,13 +69,19 @@
                         :id='row.item.id'
                         model='categoria'
                         :item='row.item'/>
+                    <CategoriaForm
+                        :newEntry='false'
+                        :entry='row.item'/>
                 </b-row>
             </b-card>
         </template>
     </b-table>
     <b-row>
         <b-col sm='6' md='3' lg='3' class='mt-1'>
-            <NovaCategoria/>
+            <CategoriaForm
+                :newEntry='true'
+                :entry='{nome: ""}'
+                />
         </b-col>
         <b-col sm='6' md='3' lg='3' class='mt-1'>
             <b-form-checkbox
@@ -95,12 +101,12 @@
 <script>
 import { mapState } from 'vuex'
 import Ordem from './Ordem'
-import NovaCategoria from './NovaCategoria'
+import CategoriaForm from './CategoriaForm'
 import DeleteButton from './DeleteButton'
 
 export default {
   name: "Categoria",
-  components: {Ordem, NovaCategoria, DeleteButton},
+  components: {Ordem, CategoriaForm, DeleteButton},
   data() {
     return {
         filter_options: {

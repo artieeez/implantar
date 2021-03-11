@@ -1,11 +1,28 @@
 <template>
-    <b-button block variant='primary' size='sm' v-b-modal.modal-nova-categoria>
-        Adicionar Categoria
+    <b-button 
+        :variant='newEntry 
+            ? "primary"
+            : "warning"'
+        :block='newEntry'
+        size='sm'
+        v-b-modal='newEntry
+            ? "novaCategoria"
+            : `editCategoria-${entry.id}`'
+        :class='!newEntry 
+            ? "ml-2" 
+            : ""'
+        @click="showModal= !showModal">
+        <span v-if='newEntry'>Nova Categoria</span>
+        <span v-else><b-icon-pen-fill/></span>
         <div>
             <b-modal
-            id="modal-nova-categoria"
+            :id='newEntry
+                ? "novaCategoria" 
+                : `editCategoria-${entry.id}`'
             ref="modal"
-            title="Adicionar Categoria"
+            :title="newEntry 
+                ? 'Nova categoria' 
+                : `${entry.nome}`"
             @show="resetModal"
             @hidden="resetModal"
             @ok="handleOk"
@@ -14,7 +31,7 @@
                     Cancelar
                 </template>
                 <template #modal-ok>
-                    Adicionar
+                    Salvar
                 </template>
                 <form ref="form" @submit.stop.prevent="handleSubmit" novalidate>
                     <b-form-group
@@ -27,11 +44,12 @@
                         <b-form-input
                             id="categoria"
                             name="categoria"
-                            v-model="categoria_nome"
+                            v-model="nome"
                             type="text"
                             placeholder="Escolha o nome da categoria"
                             :state="invalidCategoria"
                             required
+                            autofocus
                         ></b-form-input>
                     </b-form-group>
                 </form>
@@ -46,19 +64,26 @@
 <script>
 import { axiosBase, APIEndpoints } from '../../api/axios-base'
 export default {
-    name: 'NovaCategoria',
+    name: 'CategoriaForm',
+    props: {
+        newEntry: {
+            type: Boolean,
+            require: true,
+        },
+        entry: Object,
+    },
     data() {
         return {
+            nome: this.entry.nome,
             CATEGORIA_LENGTH: 6,
-            categoria_nome: "",
             categoria_in_use: false,
         }
     },
     computed: {
         invalidCategoria() {
-            if (this.categoria_nome == '') {
+            if (this.nome == '') {
             return null
-            } else if (this.categoria_nome.length < this.CATEGORIA_LENGTH) {
+            } else if (this.nome.length < this.CATEGORIA_LENGTH) {
             return false
             } else {
             this.is_categoria_in_use(); // Altera is_categoria_in_use de forma async
@@ -78,7 +103,11 @@ export default {
             return this.invalidCategoria
         },
         resetModal() {
-            this.categoria_nome = "";
+            if (this.newEntry) {
+                this.nome = "";
+            } else {
+                this.nome = this.entry.nome;
+            }
         },
         handleOk(bvModalEvt) {
             // Prevent modal from closing
@@ -94,18 +123,24 @@ export default {
                 return
             }
             // Post data
-            await this.postCategoria();
+            if (this.newEntry) {
+                await this.postCategoria();
+            } else {
+                await this.patchCategoria();
+            }
             
             // Hide the modal manually
             this.$nextTick(() => {
-                this.$bvModal.hide('modal-nova-categoria')
+                this.newEntry
+                ? this.$bvModal.hide("novaCategoria")
+                : this.$bvModal.hide(`editCategoria-${this.entry.id}`)
             })
 
 
         },
         is_categoria_in_use() {
         // Altera is_categoria_in_use de forma async
-        let categoria = this.categoria_nome;
+        let categoria = this.nome;
             axiosBase.get(
                 APIEndpoints.is_categoria_in_use + '/' +
                 categoria, {
@@ -125,9 +160,16 @@ export default {
             })
         },
         async postCategoria() {
-            await this.$store.dispatch('postCategoria', this.categoria_nome)
+            await this.$store.dispatch('postCategoria', this.nome)
             this.$store.dispatch('fetchCategorias');
         },
+        async patchCategoria() {
+            await this.$store.dispatch('categoria_partial_update', {
+                id: this.entry.id,
+                nome: this.nome
+                })
+            this.$store.dispatch('fetchCategorias');
+        }
     }
   }
 </script>
