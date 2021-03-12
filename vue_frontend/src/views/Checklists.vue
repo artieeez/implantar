@@ -5,6 +5,7 @@
         <h1 class='text-primary'>Checklists</h1>
         <b-container class='baseCon1'>
             <Categoria/>
+            <ItemBase/>
         </b-container>
     </b-container>
   </div>
@@ -14,11 +15,12 @@
 import NavBar from '../components/Navbar'
 import { mapState } from 'vuex'
 import Categoria from '../components/checklists/Categoria'
+import ItemBase from '../components/checklists/ItemBase'
 
 
 export default {
   name: "Checklists",
-  components: {NavBar, Categoria},
+  components: {NavBar, Categoria, ItemBase},
   data() {
     return {
         filter_options: {

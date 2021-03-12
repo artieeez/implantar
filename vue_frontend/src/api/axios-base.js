@@ -26,7 +26,6 @@ axiosBase.interceptors.response.use(function (response) {
           console.log("Interceptor - 2 - got acess key");
           err.config.headers.Authorization = `Bearer ${access}`;
           console.log("Interceptor - 4 - retrying request");
-          console.log(err.config.headers);
           axios.request(
             err.config,
           ).then(response => {

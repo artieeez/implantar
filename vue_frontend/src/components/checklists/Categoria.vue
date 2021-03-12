@@ -61,6 +61,7 @@
                         class='ml-2'
                         size='sm'
                         @click="categoria_active_change(row.item.id, !row.item.is_active)"
+                        v-b-tooltip.hover title="Ao desativar uma categoria, novos checklists serão gerados sem ela."
                     >
                         <span v-if='row.item.is_active'><b-icon-lock-fill/> Desativar categoria</span>
                         <span v-if='!row.item.is_active'><b-icon-unlock-fill/> Ativar categoria</span>
@@ -69,19 +70,22 @@
                         :id='row.item.id'
                         model='categoria'
                         :item='row.item'/>
-                    <CategoriaForm
+                    <ModelForm
                         :newEntry='false'
-                        :entry='row.item'/>
+                        :entry='row.item'
+                        objectName='categoria'
+                        />
                 </b-row>
             </b-card>
         </template>
     </b-table>
     <b-row>
         <b-col sm='6' md='3' lg='3' class='mt-1'>
-            <CategoriaForm
+            <ModelForm
                 :newEntry='true'
                 :entry='{nome: ""}'
-                />
+                objectName='categoria'
+            />
         </b-col>
         <b-col sm='6' md='3' lg='3' class='mt-1'>
             <b-form-checkbox
@@ -101,12 +105,12 @@
 <script>
 import { mapState } from 'vuex'
 import Ordem from './Ordem'
-import CategoriaForm from './CategoriaForm'
+import ModelForm from './ModelForm'
 import DeleteButton from './DeleteButton'
 
 export default {
   name: "Categoria",
-  components: {Ordem, CategoriaForm, DeleteButton},
+  components: {Ordem, ModelForm, DeleteButton},
   data() {
     return {
         filter_options: {
@@ -162,7 +166,7 @@ export default {
             id: id,
             is_active: boolean
         }
-        this.$store.dispatch('categoria_partial_update', categoria)
+        this.$store.dispatch('patchCategoria', categoria)
             .then(() => {
                 this.fetchCategorias();
             })

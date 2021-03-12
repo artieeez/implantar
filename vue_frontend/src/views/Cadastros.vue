@@ -71,6 +71,7 @@
                                 class='ml-2'
                                 size='sm'
                                 @click="user_active_change(row.item.id, !row.item.is_active)"
+                                v-b-tooltip.hover title="O usuário fica incapaz de acessar o sistema"
                                 >
                                 <span v-if='row.item.is_active'><b-icon-lock-fill/> Desativar usuário</span>
                                 <span v-if='!row.item.is_active'><b-icon-unlock-fill/> Ativar usuário</span>
@@ -80,9 +81,6 @@
                 </template>
             </b-table>
             <b-row>
-                <b-col sm='6' md='3' lg='3'>
-                    <b-button block size="sm" @click="clearSelected" class='mt-1'>Limpar seleção</b-button>
-                </b-col>
                 <b-col sm='6' md='3' lg='3' class='mt-1'>
                     <RegisterToken/>
                 </b-col>
@@ -186,7 +184,7 @@ export default {
                 is_active: boolean
             }
         }
-        this.$store.dispatch('user_partial_update', user)
+        this.$store.dispatch('patchUser', user)
                 .then(() => {
                     this.fetchUsers();
                 })

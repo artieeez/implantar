@@ -20,6 +20,7 @@ export default new Vuex.Store({
     users: [],
     groups: [],
     categorias: [],
+    itemBases: [],
   },
   getters: {
     isLoading (state) {
@@ -103,6 +104,9 @@ export default new Vuex.Store({
       state.categorias = categorias;
       /* localStorage.setItem('users', JSON.stringify(users)) */
     },
+    updateItemBase (state, itemBases) {
+      state.itemBases = itemBases;
+    }
   },
   actions: {
     /*  AUTH
@@ -179,37 +183,9 @@ export default new Vuex.Store({
           })
       })
     },
-    user_partial_update (context, user) {
+    patchUser (context, user) {
       return new Promise((resolve, reject) => {
         axiosBase.patch(`/users/${user.id}/`, user.data,
-        {
-          headers: { Authorization: `Bearer ${context.state.accessToken}` },
-        })
-          .then(response => {
-            resolve(response)
-          })
-          .catch(err => {
-            reject(err)
-          })
-      })
-    },
-    categoria_partial_update (context, categoria) {
-      return new Promise((resolve, reject) => {
-        axiosBase.patch(`/categorias/${categoria.id}/`, categoria,
-        {
-          headers: { Authorization: `Bearer ${context.state.accessToken}` },
-        })
-          .then(response => {
-            resolve(response)
-          })
-          .catch(err => {
-            reject(err)
-          })
-      })
-    },
-    categoria_change_order (context, categoria) {
-      return new Promise((resolve, reject) => {
-        axiosBase.patch(`/categorias/${categoria.id}/change_order`, categoria,
         {
           headers: { Authorization: `Bearer ${context.state.accessToken}` },
         })
@@ -286,27 +262,6 @@ export default new Vuex.Store({
           })
       })
     },
-    fetchCategorias (context, filter_options) {
-      let searchUrl = '/categorias'
-      if (filter_options != null) {
-        if (filter_options.is_active.in_use) {
-          let str_is_active = `?is_active=${filter_options.is_active.value}`
-          searchUrl += str_is_active
-        }
-      }
-      return new Promise((resolve, reject) => {
-        axiosBase.get(searchUrl, {
-          headers: { Authorization: `Bearer ${context.state.accessToken}` },
-        })
-          .then(response => {
-            context.commit('updateCategorias', response.data.results)
-            resolve(response.data.results)
-          })
-          .catch(err => {
-            reject(err)
-          })
-      })
-    },
     fetchRedes (context) {
       return new Promise((resolve, reject) => {
         axiosBase.get('/redes', {
@@ -334,12 +289,59 @@ export default new Vuex.Store({
           })
       })
     },
+    /* Categoria */
     postCategoria (context, data) {
       return new Promise((resolve, reject) => {
-        axiosBase.post(`/categorias/`, {
-          nome: data,
-          id_arb: 1,
-        },
+        axiosBase.post(`/categorias/`, data,
+        {
+          headers: { Authorization: `Bearer ${context.state.accessToken}` },
+        })
+          .then(response => {
+            resolve(response)
+          })
+          .catch(err => {
+            reject(err)
+          })
+      })
+    },
+    fetchCategorias (context, filter_options) {
+      let searchUrl = '/categorias'
+      if (filter_options != null) {
+        if (filter_options.is_active.in_use) {
+          let str_is_active = `?is_active=${filter_options.is_active.value}`
+          searchUrl += str_is_active
+        }
+      }
+      return new Promise((resolve, reject) => {
+        axiosBase.get(searchUrl, {
+          headers: { Authorization: `Bearer ${context.state.accessToken}` },
+        })
+          .then(response => {
+            context.commit('updateCategorias', response.data.results)
+            resolve(response.data.results)
+          })
+          .catch(err => {
+            reject(err)
+          })
+      })
+    },
+    patchCategoria (context, data) {
+      return new Promise((resolve, reject) => {
+        axiosBase.patch(`/categorias/${data.id}/`, data,
+        {
+          headers: { Authorization: `Bearer ${context.state.accessToken}` },
+        })
+          .then(response => {
+            resolve(response)
+          })
+          .catch(err => {
+            reject(err)
+          })
+      })
+    },
+    categoria_change_order (context, categoria) {
+      return new Promise((resolve, reject) => {
+        axiosBase.patch(`/categorias/${categoria.id}/change_order`, categoria,
         {
           headers: { Authorization: `Bearer ${context.state.accessToken}` },
         })
@@ -354,6 +356,69 @@ export default new Vuex.Store({
     deleteCategoria (context, id) {
       return new Promise((resolve, reject) => {
         axiosBase.delete(`/categorias/${id}`, {
+          headers: { Authorization: `Bearer ${context.state.accessToken}` },
+        })
+          .then(response => {
+            resolve(response)
+          })
+          .catch(err => {
+            reject(err)
+          })
+      })
+    },
+    /* ItemBase */
+    postItem (context, data) {
+      return new Promise((resolve, reject) => {
+        axiosBase.post(`/item_base/`, data,
+        {
+          headers: { Authorization: `Bearer ${context.state.accessToken}` },
+        })
+          .then(response => {
+            resolve(response)
+          })
+          .catch(err => {
+            reject(err)
+          })
+      })
+    },
+    fetchItem (context, filter_options) {
+      let searchUrl = '/item_base'
+      if (filter_options != null) {
+        if (filter_options.is_active.in_use) {
+          let str_is_active = `?is_active=${filter_options.is_active.value}`
+          searchUrl += str_is_active
+        }
+      }
+      return new Promise((resolve, reject) => {
+        axiosBase.get(searchUrl, {
+          headers: { Authorization: `Bearer ${context.state.accessToken}` },
+        })
+          .then(response => {
+            context.commit('updateItemBase', response.data.results)
+            resolve(response.data.results)
+          })
+          .catch(err => {
+            reject(err)
+          })
+      })
+    },
+    patchItem (context, data) {
+      return new Promise((resolve, reject) => {
+        axiosBase.patch(`/item_base/${data.id}/`, data,
+        {
+          headers: { Authorization: `Bearer ${context.state.accessToken}` },
+        })
+          .then(response => {
+            resolve(response)
+          })
+          .catch(err => {
+            reject(err)
+          })
+      })
+    },
+    deleteItem (context, id) {
+      return new Promise((resolve, reject) => {
+        axiosBase.delete(`/item_base/${id}`, {
           headers: { Authorization: `Bearer ${context.state.accessToken}` },
         })
           .then(response => {
