@@ -42,6 +42,9 @@ export default new Vuex.Store({
     getGroups (state) {
       return state.groups;
     },
+    getCategorias (state) {
+      return state.categorias;
+    },
     getRedes (state) {
       return state.redes;
     },
@@ -104,7 +107,7 @@ export default new Vuex.Store({
       state.categorias = categorias;
       /* localStorage.setItem('users', JSON.stringify(users)) */
     },
-    updateItemBase (state, itemBases) {
+    updateItemBases (state, itemBases) {
       state.itemBases = itemBases;
     }
   },
@@ -381,7 +384,7 @@ export default new Vuex.Store({
           })
       })
     },
-    fetchItem (context, filter_options) {
+    fetchItems (context, filter_options) {
       let searchUrl = '/item_base'
       if (filter_options != null) {
         if (filter_options.is_active.in_use) {
@@ -394,7 +397,7 @@ export default new Vuex.Store({
           headers: { Authorization: `Bearer ${context.state.accessToken}` },
         })
           .then(response => {
-            context.commit('updateItemBase', response.data.results)
+            context.commit('updateItemBases', response.data.results)
             resolve(response.data.results)
           })
           .catch(err => {

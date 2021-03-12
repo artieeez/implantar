@@ -39,7 +39,21 @@
                         :state='field.stateFunction'
                         :invalid-feedback='field.invalidStateFeedback'
                     >   
+                        <!-- if select -->
+                        <b-form-select
+                            v-if='field.type === "select"'
+                            :id='field.name'
+                            :name='field.name'
+                            v-model='model.data[field.name]'
+                            :options="field.options"
+                            :value-field='field.select_value_field'
+                            :text-field='field.select_text_field'
+                            :select-size='6'
+                            :state='field.stateFunction'
+                        ></b-form-select>
+                        <!-- else -->
                         <b-form-input
+                            v-else
                             :id='field.name'
                             :name='field.name'
                             v-model='model.data[field.name]'
@@ -60,6 +74,7 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
 export default {
     name: 'ModelForm',
     props: {
@@ -114,9 +129,19 @@ export default {
             },
             item: {
                 data: {
+                    categoria: this.entry.categoria,
                     text: this.entry.text,
                 },
                 fields: [
+                    { // Não trocar ordem deste field!!
+                        name: 'categoria',
+                        label: 'Escolha a categoria',
+                        type: 'select',
+                        select_value_field: 'id',
+                        select_text_field: 'nome',
+                        stateFunction: null,
+                        options: [],
+                    },
                     {
                         name: 'text',
                         label: 'Escolha o nome do texto',
@@ -129,8 +154,10 @@ export default {
     created() {
         this.model = this[this.modelName];
         this.model.data.id = this.entry.id || null; // Utilizado no patch
+        this.fetchOptions();
     },
     computed: {
+        ...mapGetters(['getCategorias']),
         modalName() {
             return this.newEntry
                     ? `new${this.modelName}` 
@@ -144,6 +171,15 @@ export default {
         },
     },
     methods: {
+        async fetchOptions() { // Get options for select
+            if (this.modelName === 'item') {
+                this.$store.dispatch('fetchCategorias')
+                .then(() => {
+                        this[this.modelName].fields[0].options = this.getCategorias;
+                        this.$store.commit('setLoading', false);
+                    })
+            }
+        },
         checkFormValidity() {
             return this.invalidForm
         },

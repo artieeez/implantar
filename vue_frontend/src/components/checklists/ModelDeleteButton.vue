@@ -53,7 +53,7 @@ export default {
             require: true,
             default: function () {
                 return `delete${this.modelName[0].toUpperCase()}` 
-                    + `${this.modelName.slice(1)}s`
+                    + `${this.modelName.slice(1)}`
             }
         }
     },
