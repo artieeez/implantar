@@ -25,7 +25,7 @@
             <ModelForm
                 :newEntry='true'
                 :entry='{text: ""}'
-                objectName='item'
+                modelName='item'
             />
         </b-col>
         <b-col sm='6' md='3' lg='3' class='mt-1'>

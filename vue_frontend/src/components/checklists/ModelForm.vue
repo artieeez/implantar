@@ -10,14 +10,14 @@
             ? "ml-2" 
             : ""'
         @click="showModal= !showModal">
-        <span v-if='newEntry'>Adicionar {{ objectName }}</span>
+        <span v-if='newEntry'>Adicionar {{ modelName }}</span>
         <span v-else><b-icon-pen-fill/></span>
         <div>
             <b-modal
                 :id='modalName'
                 ref="modal"
                 :title="newEntry 
-                    ? `Novo ${objectName}`
+                    ? `Novo ${modelName}`
                     : `${entry.nome}`"
                 @show="resetModal"
                 @hidden="resetModal"
@@ -33,7 +33,7 @@
                     <b-form-group
                         v-for='(field, index) in model.fields'
                         :key='index'
-                        :id='`${objectName}-group-${index}`'
+                        :id='`${modelName}-group-${index}`'
                         :label='field.label'
                         :label-for='field.name'
                         :state='field.stateFunction'
@@ -67,7 +67,7 @@ export default {
             type: Boolean,
             require: true,
         },
-        objectName: { // Define o model
+        modelName: { // Define o model
             type: String,
             require: true,
         },
@@ -75,31 +75,31 @@ export default {
             type: String,
             require: true,
             default: function () {
-                return `post${this.objectName[0].toUpperCase()}` 
-                    + `${this.objectName.slice(1)}`
+                return `post${this.modelName[0].toUpperCase()}` 
+                    + `${this.modelName.slice(1)}`
             },
         },
         patchRoute: {
             type: String,
             require: true,
             default: function () {
-                return `patch${this.objectName[0].toUpperCase()}` 
-                    + `${this.objectName.slice(1)}`
+                return `patch${this.modelName[0].toUpperCase()}` 
+                    + `${this.modelName.slice(1)}`
             },
         },
         fetchRoute: {
             type: String,
             require: true,
             default: function () {
-                return `fetch${this.objectName[0].toUpperCase()}` 
-                    + `${this.objectName.slice(1)}s`
+                return `fetch${this.modelName[0].toUpperCase()}` 
+                    + `${this.modelName.slice(1)}s`
             },
         },
         entry: Object,
     },
     data() {
         return {
-            model: null, // Corresponde ao prop objectName
+            model: null, // Corresponde ao prop modelName
             categoria: {
                 data: {
                     nome: this.entry.nome,
@@ -127,14 +127,14 @@ export default {
         }
     },
     created() {
-        this.model = this[this.objectName];
+        this.model = this[this.modelName];
         this.model.data.id = this.entry.id || null; // Utilizado no patch
     },
     computed: {
         modalName() {
             return this.newEntry
-                    ? `new${this.objectName}` 
-                    : `edit${this.objectName}-${this.entry.id}`
+                    ? `new${this.modelName}` 
+                    : `edit${this.modelName}-${this.entry.id}`
         },
         invalidForm() {
             return true

@@ -66,14 +66,13 @@
                         <span v-if='row.item.is_active'><b-icon-lock-fill/> Desativar categoria</span>
                         <span v-if='!row.item.is_active'><b-icon-unlock-fill/> Ativar categoria</span>
                         </b-button>
-                    <DeleteButton
-                        :id='row.item.id'
-                        model='categoria'
-                        :item='row.item'/>
+                    <ModelDeleteButton
+                        modelName='categoria'
+                        :entry='row.item'/>
                     <ModelForm
                         :newEntry='false'
                         :entry='row.item'
-                        objectName='categoria'
+                        modelName='categoria'
                         />
                 </b-row>
             </b-card>
@@ -84,7 +83,7 @@
             <ModelForm
                 :newEntry='true'
                 :entry='{nome: ""}'
-                objectName='categoria'
+                modelName='categoria'
             />
         </b-col>
         <b-col sm='6' md='3' lg='3' class='mt-1'>
@@ -106,11 +105,11 @@
 import { mapState } from 'vuex'
 import Ordem from './Ordem'
 import ModelForm from './ModelForm'
-import DeleteButton from './DeleteButton'
+import ModelDeleteButton from './ModelDeleteButton'
 
 export default {
   name: "Categoria",
-  components: {Ordem, ModelForm, DeleteButton},
+  components: {Ordem, ModelForm, ModelDeleteButton},
   data() {
     return {
         filter_options: {
