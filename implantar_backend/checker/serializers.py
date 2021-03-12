@@ -170,7 +170,21 @@ class ItemBaseSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def create(self, validated_data):
-        return ItemBase.objects.create(**validated_data)
+        c = ItemBase.objects.create(**validated_data)
+        # get id_arb
+        try:
+            if ItemBase.objects.count() > 1:
+                id_arb = ItemBase.objects.exclude(id_arb=None).latest('id_arb').id_arb + 1
+                c.id_arb = id_arb
+            else:
+                c.id_arb = 1
+            c.save()
+        except Exception as e:
+            print(e)
+            c.id_arb = ItemBase.objects.count()
+            c.save()
+
+        return c
 
     def update(self, instance, validated_data):
         instance.nome = validated_data.get('text', instance.text)
