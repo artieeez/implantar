@@ -29,8 +29,8 @@
                 <Ordem
                     :id='data.item.id'
                     :index='data.value'
-                    model='categoria'
-                    :length='items.length'
+                    modelName='categoria'
+                    :listLength='items.length'
                     />
             </div>
         </template>
