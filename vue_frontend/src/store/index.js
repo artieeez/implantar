@@ -370,7 +370,7 @@ export default new Vuex.Store({
       })
     },
     /* ItemBase */
-    postItem (context, data) {
+    postItemBase (context, data) {
       return new Promise((resolve, reject) => {
         axiosBase.post(`/item_base/`, data,
         {
@@ -384,7 +384,7 @@ export default new Vuex.Store({
           })
       })
     },
-    fetchItems (context, filter_options) {
+    fetchItemBases (context, filter_options) {
       let searchUrl = '/item_base'
       if (filter_options != null) {
         if (filter_options.is_active.in_use) {
@@ -405,7 +405,7 @@ export default new Vuex.Store({
           })
       })
     },
-    patchItem (context, data) {
+    patchItemBase (context, data) {
       return new Promise((resolve, reject) => {
         axiosBase.patch(`/item_base/${data.id}/`, data,
         {
@@ -419,7 +419,7 @@ export default new Vuex.Store({
           })
       })
     },
-    deleteItem (context, id) {
+    deleteItemBase (context, id) {
       return new Promise((resolve, reject) => {
         axiosBase.delete(`/item_base/${id}`, {
           headers: { Authorization: `Bearer ${context.state.accessToken}` },

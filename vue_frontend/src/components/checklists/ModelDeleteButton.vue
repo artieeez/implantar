@@ -66,7 +66,7 @@ export default {
                     Considere <b>desativar</b> a categoria.
                 `,
             },
-            item: {
+            itemBase: {
                 aviso: `
                     Atenção! Ao excluir este item você pode quebrar relátorios que o utilizem. <br>
                     Considere <b>desativar</b> o item.

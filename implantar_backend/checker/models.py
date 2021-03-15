@@ -209,7 +209,6 @@ class ChecklistItem(models.Model):
 class ItemBase(models.Model):
     id_arb = models.IntegerField(null=True) # Determina ordem
     text = models.CharField(max_length=255)
-    active = models.BooleanField(default=True)
     categoria = models.ForeignKey('checker.Categoria',
         on_delete=models.PROTECT, null=True)
 

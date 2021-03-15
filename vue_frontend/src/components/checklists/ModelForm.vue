@@ -9,7 +9,7 @@
         :class='!newEntry 
             ? "ml-2" 
             : ""'
-        @click="showModal= !showModal">
+        >
         <span v-if='newEntry'>Adicionar {{ modelName }}</span>
         <span v-else><b-icon-pen-fill/></span>
         <div>
@@ -20,14 +20,13 @@
                     ? `Novo ${modelName}`
                     : `${entry.nome}`"
                 @show="resetModal"
-                @hidden="resetModal"
                 @ok="handleOk"
             >
                 <template #modal-cancel>
                     Cancelar
                 </template>
                 <template #modal-ok>
-                    Adicionar
+                    Salvar
                 </template>
                 <form ref="form" @submit.stop.prevent="handleSubmit" novalidate>
                     <b-form-group
@@ -127,18 +126,18 @@ export default {
                     },
                 ]
             },
-            item: {
+            itemBase: {
                 data: {
                     categoria: this.entry.categoria,
                     text: this.entry.text,
                 },
                 fields: [
-                    { // Não trocar ordem deste field!!
+                    { // Não trocar ordem deste field!! Select
                         name: 'categoria',
                         label: 'Escolha a categoria',
                         type: 'select',
-                        select_value_field: 'id',
-                        select_text_field: 'nome',
+                        select_value_field: 'id', // Required
+                        select_text_field: 'nome', // Required
                         stateFunction: null,
                         options: [],
                     },
@@ -154,7 +153,6 @@ export default {
     created() {
         this.model = this[this.modelName];
         this.model.data.id = this.entry.id || null; // Utilizado no patch
-        this.fetchOptions();
     },
     computed: {
         ...mapGetters(['getCategorias']),
@@ -171,8 +169,8 @@ export default {
         },
     },
     methods: {
-        async fetchOptions() { // Get options for select
-            if (this.modelName === 'item') {
+        fetchOptions() { // Get options for select
+            if (this.modelName === 'itemBase') {
                 this.$store.dispatch('fetchCategorias')
                 .then(() => {
                         this[this.modelName].fields[0].options = this.getCategorias;
@@ -183,7 +181,8 @@ export default {
         checkFormValidity() {
             return this.invalidForm
         },
-        resetModal() {
+        async resetModal() {
+            await this.fetchOptions();
             if (this.newEntry) {
                 this.model.fields.forEach((field) => {
                     this.model.data[field.name] = field.default || null
@@ -191,6 +190,9 @@ export default {
             } else {
                 this.model.fields.forEach((field) => {
                     this.model.data[field.name] = this.entry[field.name];
+                    if (field.type === 'select') {
+                        this.model.data[field.name] = this.entry[field.name][field.select_value_field];
+                    }
                 });
             }
         },

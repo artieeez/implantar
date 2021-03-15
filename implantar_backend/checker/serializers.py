@@ -163,8 +163,7 @@ class CategoriaSerializer(serializers.ModelSerializer):
 
         return c
 
-
-class ItemBaseSerializer(serializers.ModelSerializer):
+class ItemBaseSerializer_Create(serializers.ModelSerializer):
     class Meta:
         model = ItemBase
         fields = '__all__'
@@ -186,12 +185,13 @@ class ItemBaseSerializer(serializers.ModelSerializer):
 
         return c
 
-    def update(self, instance, validated_data):
-        instance.nome = validated_data.get('text', instance.text)
-        instance.nome = validated_data.get('active', instance.active)
-        instance.save()
-        return instance
-
+class ItemBaseSerializer(serializers.ModelSerializer):
+    categoria = CategoriaSerializer()
+    
+    class Meta:
+        model = ItemBase
+        fields = '__all__'
+        depth = 1
 
 class ItemSerializer(serializers.ModelSerializer):
     visita_id = serializers.IntegerField(required=False)

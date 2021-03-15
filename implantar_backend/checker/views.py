@@ -356,11 +356,18 @@ class ItemBaseViewSet(mixins.CreateModelMixin,
                   mixins.RetrieveModelMixin,
                   mixins.UpdateModelMixin,
                   mixins.ListModelMixin,
-                  trash_mixins.TrashModelMixin,
+                  mixins.DestroyModelMixin,
                   viewsets.GenericViewSet):
     queryset = ItemBase.objects.all()
     serializer_class = ItemBaseSerializer
-    filterset_fields = ['is_active', 'active']
+    filterset_fields = ['is_active']
+
+    def get_serializer_class(self):
+        if self.request.method in ['POST', 'PUT', 'PATCH']:
+            serializer_class = ItemBaseSerializer_Create
+        else:
+            serializer_class = self.serializer_class
+        return serializer_class
 
     def get_permissions(self):
         permission_classes = [IsAuthenticated]
@@ -384,7 +391,7 @@ class CategoriaViewSet(mixins.CreateModelMixin,
     filterset_fields = ['is_active']
 
     def get_permissions(self):
-        permission_classes = [AllowAny]
+        permission_classes = [IsAuthenticated]
         """ if self.request.method == 'GET':
             permission_classes = [IsAuthenticated]
         else:
