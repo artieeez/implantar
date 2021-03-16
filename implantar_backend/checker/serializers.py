@@ -178,8 +178,8 @@ class ItemBaseSerializer_Create(serializers.ModelSerializer):
         c = ItemBase.objects.create(**validated_data)
         # get id_arb
         try:
-            if ItemBase.objects.count() > 1:
-                id_arb = ItemBase.objects.exclude(id_arb=None).latest('id_arb').id_arb + 1
+            if ItemBase.objects.count() > 1 and ItemBase.objects.filter(categoria=c.categoria).count() > 1:
+                id_arb = ItemBase.objects.filter(categoria=c.categoria).exclude(id_arb=None).latest('id_arb').id_arb + 1
                 c.id_arb = id_arb
             else:
                 c.id_arb = 1
