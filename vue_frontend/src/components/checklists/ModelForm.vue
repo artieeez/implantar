@@ -18,7 +18,7 @@
                 ref="modal"
                 :title="newEntry 
                     ? `Novo ${modelName}`
-                    : `${entry.nome}`"
+                    : `${title}`"
                 @show="resetModal"
                 @ok="handleOk"
             >
@@ -115,6 +115,7 @@ export default {
         return {
             model: null, // Corresponde ao prop modelName
             categoria: {
+                display: this.entry.nome,
                 data: {
                     nome: this.entry.nome,
                 },
@@ -127,6 +128,7 @@ export default {
                 ]
             },
             itemBase: {
+                display: this.entry.text,
                 data: {
                     categoria: this.entry.categoria,
                     text: this.entry.text,
@@ -167,6 +169,14 @@ export default {
         invalidFormFeedback() {
             return ''
         },
+        title() {
+            if (this.modelName === 'itemBase') {
+                return this.entry.categoria.id_arb + '.' + this.entry.id_arb +
+                ' - ' + this.entry.text
+            } else {
+            return this.model.display;
+            }
+        }
     },
     methods: {
         fetchOptions() { // Get options for select

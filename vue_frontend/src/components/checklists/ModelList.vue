@@ -1,7 +1,7 @@
 <template>
   <div>
     <b-container class="baseOuterCon1">
-      <h3 class="text-primary">{{ modelName + 's' }}</h3>
+      <h3 class="text-primary">{{ model.title }}</h3>
       <b-table
         head-variant="light"
         :busy="$store.getters.isLoading"
@@ -136,6 +136,7 @@ export default {
       },
       model: null, // Corresponde ao prop modelName
       categoria: {
+        title: 'Categorias',
         fields: [
           {
               key: 'id_arb',
@@ -153,6 +154,7 @@ export default {
         ],
       },
       itemBase: {
+        title: 'Itens',
         group_by: {
           field: 'categoria.id',
           display_field: 'categoria.nome',

@@ -7,6 +7,7 @@
             <ModelList
                 modelName='categoria'
             />
+            <hr>
             <ModelList
                 modelName='itemBase'
             />
