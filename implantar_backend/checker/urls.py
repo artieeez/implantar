@@ -28,6 +28,7 @@ urlpatterns = [
     path('users/is_username_in_use/<str:username>', views.UserViewSet.as_view({'get': 'is_username_in_use'})),
     path('categorias/is_categoria_in_use/<str:categoria>', views.CategoriaViewSet.as_view({'get': 'is_categoria_in_use'})),
     path('categorias/<int:pk>/change_order', views.CategoriaViewSet.as_view({'patch': 'change_order'})),
+    path('item_base/<int:pk>/change_order', views.ItemBaseViewSet.as_view({'patch': 'change_order'})),
     path('users/<int:pk>/username_reset', views.UserViewSet.as_view({'put': 'username'})),
     path('users/<int:pk>/password_reset', views.UserViewSet.as_view({'put': 'password'})),
     # Mobile

@@ -140,6 +140,9 @@ class RegisterTokenSerializer(serializers.ModelSerializer):
 
 
 class CategoriaSerializer(serializers.ModelSerializer):
+    id_arb_max = serializers.SerializerMethodField('get_id_arb_max',
+        read_only=True)
+
     class Meta:
         model = Categoria
         fields = '__all__'
@@ -162,6 +165,9 @@ class CategoriaSerializer(serializers.ModelSerializer):
             c.save()
 
         return c
+
+    def get_id_arb_max(self, obj):
+        return Categoria.objects.all().count()
 
 class ItemBaseSerializer_Create(serializers.ModelSerializer):
     class Meta:
@@ -187,12 +193,17 @@ class ItemBaseSerializer_Create(serializers.ModelSerializer):
 
 class ItemBaseSerializer(serializers.ModelSerializer):
     categoria = CategoriaSerializer()
+    id_arb_max = serializers.SerializerMethodField('get_id_arb_max',
+        read_only=True)
     
     class Meta:
         model = ItemBase
         fields = '__all__'
         depth = 1
 
+    def get_id_arb_max(self, obj):
+        return ItemBase.objects.filter(categoria=obj.categoria).count()
+        
 class ItemSerializer(serializers.ModelSerializer):
     visita_id = serializers.IntegerField(required=False)
     itemBase_id = serializers.IntegerField(write_only=True)

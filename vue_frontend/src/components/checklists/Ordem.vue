@@ -1,9 +1,9 @@
 <template>
     <span class='d-inline-flex'>
-        {{ index }}
+        <span v-if='modelName === "itemBase"'>{{ entry.categoria.id_arb }}.</span>{{ entry.id_arb }}
         <div class='ml-2'>
-            <b-icon-arrow-up-circle class='mr-1' v-show='index > 1' @click='changeOrder(-1)'/>
-            <b-icon-arrow-down-circle v-show='index < listLength' @click='changeOrder(1)'/>
+            <b-icon-arrow-up-circle class='mr-1' v-show='entry.id_arb > 1' @click='changeOrder(-1)'/>
+            <b-icon-arrow-down-circle v-show='entry.id_arb < entry.id_arb_max' @click='changeOrder(1)'/>
         </div>
     </span>
 </template>
@@ -12,20 +12,12 @@
 export default {
     name: 'Ordem',
     props: {
-        id: {
-            type: Number,
-            required: true,
-        },
-        index: {
-            type: Number,
+        entry: {
+            type: Object,
             required: true,
         },
         modelName: {
             type: String,
-            required: true,
-        },
-        listLength: {
-            type: Number,
             required: true,
         },
         changeOrderRoute: {
@@ -48,8 +40,8 @@ export default {
         changeOrder(quantity) {
             this.$store.commit('setLoading', true);
             this.$store.dispatch(this.changeOrderRoute, {
-                id: this.id,
-                id_arb: this.index + quantity
+                id: this.entry.id,
+                id_arb: this.entry.id_arb + quantity
             })
             .then(() => {
                 this.$store.dispatch(this.fetchRoute)

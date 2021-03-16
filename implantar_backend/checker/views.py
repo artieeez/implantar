@@ -378,6 +378,47 @@ class ItemBaseViewSet(mixins.CreateModelMixin,
         if request.method not in ['GET', 'HEAD', 'OPTIONS'] and (response.status_code >= 200 and response.status_code <=299):
             db_version.upgrade_version()
         return xresponse
+    
+    @action(detail=True, methods=['patch'])
+    def change_order(self, request, pk, format=None):
+        if request.method == 'PATCH':
+            order = self.fix_order()
+            if order['is_ok']:
+                i1 = ItemBase.objects.get(pk=pk)
+                c1_query = ItemBase.objects.filter(categoria=i1.categoria)
+                if request.data['id_arb'] <= len(c1_query) and request.data['id_arb'] >= 1:
+                    i2 = c1_query.get(id_arb= request.data['id_arb'])
+                    i2.id_arb, i1.id_arb = i1.id_arb, request.data['id_arb']
+                    i1.save()
+                    i2.save()
+                return Response(None, status=status.HTTP_200_OK)
+            else:
+                return Response({'message': 'Ordem organizada'}, status=status.HTTP_200_OK)
+
+    @atomic
+    def fix_order(self):
+        queryset = [] # Queryset por categoria
+        for row in Categoria.objects.all():
+            q = ItemBase.objects.filter(categoria=row)
+            if len(q) > 0:
+                queryset.append(q)
+        if (all(row.last().id_arb == len(row) for row in queryset)):
+            return {
+                'queryset': queryset,
+                'is_ok': True,
+            }
+        
+        for categoria_set in queryset:
+            index = 1
+            for itemBase in categoria_set:
+                itemBase.id_arb = index
+                itemBase.save()
+                index += 1
+
+        return {
+            'queryset': queryset,
+            'is_ok': False,
+        }
 
 
 class CategoriaViewSet(mixins.CreateModelMixin,
@@ -442,7 +483,6 @@ class CategoriaViewSet(mixins.CreateModelMixin,
                 return Response(None, status=status.HTTP_200_OK)
             else:
                 return Response({'message': 'Ordem organizada'}, status=status.HTTP_200_OK)
-            """ return Response(None, status=status.HTTP_500_INTERNAL_SERVER_ERROR) """
 
     @atomic
     def fix_order(self):

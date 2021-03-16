@@ -419,6 +419,22 @@ export default new Vuex.Store({
           })
       })
     },
+    itemBase_change_order (context, data) {
+      console.log(data);
+      return new Promise((resolve, reject) => {
+        axiosBase.patch(`/item_base/${data.id}/change_order`, data,
+        {
+          headers: { Authorization: `Bearer ${context.state.accessToken}` },
+        })
+          .then(response => {
+            resolve(response)
+          })
+          .catch(err => {
+            console.log(err.request);
+            reject(err)
+          })
+      })
+    },
     deleteItemBase (context, id) {
       return new Promise((resolve, reject) => {
         axiosBase.delete(`/item_base/${id}`, {
